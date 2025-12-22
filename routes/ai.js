@@ -26,6 +26,51 @@ router.get('/status',
 );
 
 /**
+ * @route POST /api/ai/test-connection
+ * @desc Test Gemini API connection with provided key
+ */
+router.post('/test-connection',
+    authenticate,
+    [
+        body('apiKey').notEmpty().withMessage('API key is required')
+    ],
+    asyncHandler(async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                errors: errors.array()
+            });
+        }
+
+        const { apiKey } = req.body;
+
+        try {
+            // Test the API key by making a simple request to Gemini
+            const { GoogleGenerativeAI } = await import('@google/generative-ai');
+            const testClient = new GoogleGenerativeAI(apiKey);
+            const model = testClient.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+            // Simple test prompt
+            const result = await model.generateContent('Say "API Connected" in one word.');
+            const response = await result.response;
+            const text = response.text();
+
+            res.json({
+                success: true,
+                message: 'Gemini API connection successful!',
+                testResponse: text.substring(0, 50)
+            });
+        } catch (error) {
+            res.status(400).json({
+                success: false,
+                error: error.message || 'Failed to connect to Gemini API'
+            });
+        }
+    })
+);
+
+/**
  * @route POST /api/ai/seo/generate
  * @desc Generate SEO metadata for content
  */

@@ -182,6 +182,9 @@ async function loadPageData(pageId) {
         case 'users':
             await loadUsers();
             break;
+        case 'settings':
+            await checkGeminiStatus();
+            break;
     }
 }
 
@@ -819,6 +822,165 @@ async function loadRecentVideos() {
 }
 
 // =====================
+// GEMINI API & SETTINGS
+// =====================
+
+async function checkGeminiStatus() {
+    const indicator = document.getElementById('gemini-status-indicator');
+    indicator.className = 'status-indicator checking';
+    indicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+
+    try {
+        const response = await apiRequest('/ai/status');
+        if (response.data && response.data.configured) {
+            indicator.className = 'status-indicator connected';
+            indicator.innerHTML = '<i class="fas fa-circle"></i> Connected';
+        } else {
+            indicator.className = 'status-indicator disconnected';
+            indicator.innerHTML = '<i class="fas fa-circle"></i> Not Configured';
+        }
+    } catch (error) {
+        indicator.className = 'status-indicator disconnected';
+        indicator.innerHTML = '<i class="fas fa-circle"></i> Disconnected';
+    }
+}
+
+async function testGeminiConnection() {
+    const keyInput = document.getElementById('setting-gemini-key');
+    const apiKey = keyInput.value.trim();
+
+    if (!apiKey) {
+        showToast('Please enter an API key to test', 'error');
+        return;
+    }
+
+    showLoading();
+    try {
+        // Test the API key by making a simple request
+        const response = await apiRequest('/ai/test-connection', {
+            method: 'POST',
+            body: JSON.stringify({ apiKey })
+        });
+
+        if (response.success) {
+            showToast('✓ Gemini API connection successful!', 'success');
+            checkGeminiStatus();
+        } else {
+            showToast('✗ Connection failed: ' + (response.error || 'Invalid API key'), 'error');
+        }
+    } catch (error) {
+        showToast('✗ Connection failed: ' + (error.message || 'Could not connect to Gemini API'), 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function saveGeminiApiKey() {
+    const keyInput = document.getElementById('setting-gemini-key');
+    const apiKey = keyInput.value.trim();
+
+    if (!apiKey) {
+        showToast('Please enter an API key to save', 'error');
+        return;
+    }
+
+    showLoading();
+    try {
+        await apiRequest('/admin/settings/api-key', {
+            method: 'POST',
+            body: JSON.stringify({
+                key: 'gemini_api_key',
+                value: apiKey
+            })
+        });
+        showToast('API key saved successfully!', 'success');
+        checkGeminiStatus();
+    } catch (error) {
+        showToast('Failed to save API key: ' + error.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function toggleKeyVisibility() {
+    const keyInput = document.getElementById('setting-gemini-key');
+    const btn = document.getElementById('toggle-key-visibility');
+
+    if (keyInput.type === 'password') {
+        keyInput.type = 'text';
+        btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+    } else {
+        keyInput.type = 'password';
+        btn.innerHTML = '<i class="fas fa-eye"></i>';
+    }
+}
+
+async function testSocialGenerator() {
+    const resultDiv = document.getElementById('social-test-result');
+    const btn = document.getElementById('test-social-btn');
+
+    resultDiv.className = 'test-result loading';
+    resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing Social Media Generator...';
+    btn.disabled = true;
+
+    try {
+        const response = await apiRequest('/ai/social/generate', {
+            method: 'POST',
+            body: JSON.stringify({
+                topic: 'Alteneiji Group organic products',
+                platforms: ['instagram'],
+                tone: 'professional'
+            })
+        });
+
+        if (response.success && response.data) {
+            resultDiv.className = 'test-result success';
+            const post = response.data.instagram?.content || 'Post generated successfully!';
+            resultDiv.innerHTML = `<i class="fas fa-check-circle"></i> <strong>Success!</strong><br><small>${post.substring(0, 100)}...</small>`;
+        } else {
+            throw new Error('No content generated');
+        }
+    } catch (error) {
+        resultDiv.className = 'test-result error';
+        resultDiv.innerHTML = `<i class="fas fa-times-circle"></i> <strong>Failed:</strong> ${error.message}`;
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function testSEOGenerator() {
+    const resultDiv = document.getElementById('seo-test-result');
+    const btn = document.getElementById('test-seo-btn');
+
+    resultDiv.className = 'test-result loading';
+    resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing SEO Generator...';
+    btn.disabled = true;
+
+    try {
+        const response = await apiRequest('/ai/seo/generate', {
+            method: 'POST',
+            body: JSON.stringify({
+                content: 'Alteneiji Group is a Dubai-based import export company specializing in organic and sustainable products.',
+                contentType: 'page'
+            })
+        });
+
+        if (response.success && response.data) {
+            resultDiv.className = 'test-result success';
+            const title = response.data.meta_title || 'SEO generated successfully!';
+            resultDiv.innerHTML = `<i class="fas fa-check-circle"></i> <strong>Success!</strong><br><small>Title: ${title}</small>`;
+        } else {
+            throw new Error('No SEO content generated');
+        }
+    } catch (error) {
+        resultDiv.className = 'test-result error';
+        resultDiv.innerHTML = `<i class="fas fa-times-circle"></i> <strong>Failed:</strong> ${error.message}`;
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+// =====================
 // EVENT LISTENERS
 // =====================
 
@@ -867,6 +1029,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // AI Video Generate
     document.getElementById('generate-video-btn').addEventListener('click', generateVideo);
     document.getElementById('video-refresh-btn').addEventListener('click', refreshVideoStatus);
+
+    // Gemini API Settings
+    document.getElementById('test-gemini-btn').addEventListener('click', testGeminiConnection);
+    document.getElementById('save-gemini-key-btn').addEventListener('click', saveGeminiApiKey);
+    document.getElementById('toggle-key-visibility').addEventListener('click', toggleKeyVisibility);
+    document.getElementById('test-social-btn').addEventListener('click', testSocialGenerator);
+    document.getElementById('test-seo-btn').addEventListener('click', testSEOGenerator);
 
     // Save all social posts
     document.getElementById('save-all-posts').addEventListener('click', saveAllPosts);

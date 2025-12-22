@@ -239,6 +239,43 @@ router.put('/settings',
     })
 );
 
+/**
+ * @route POST /api/admin/settings/api-key
+ * @desc Save API key to settings
+ */
+router.post('/settings/api-key',
+    authenticate,
+    adminOnly,
+    [
+        body('key').notEmpty().withMessage('Setting key is required'),
+        body('value').notEmpty().withMessage('Setting value is required')
+    ],
+    asyncHandler(async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                errors: errors.array()
+            });
+        }
+
+        const { key, value } = req.body;
+
+        // Save to database settings
+        await Settings.set(key, value, 'api');
+
+        // Update environment variable in memory for immediate use
+        if (key === 'gemini_api_key') {
+            process.env.GEMINI_API_KEY = value;
+        }
+
+        res.json({
+            success: true,
+            message: 'API key saved successfully'
+        });
+    })
+);
+
 // =====================
 // CONTACT SUBMISSIONS
 // =====================

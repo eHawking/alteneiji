@@ -26,68 +26,12 @@
         rel="stylesheet">
 
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 
     <link rel="stylesheet" href="css/styles.css">
-    <style>
-        .hero-section {
-            background: linear-gradient(rgba(15, 20, 25, 0.7), rgba(15, 20, 25, 0.7)), url('images/hero-bg.png');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
-
-        .light-mode .hero-section {
-            background: linear-gradient(rgba(240, 240, 240, 0.8), rgba(240, 240, 240, 0.8)), url('images/hero-bg.png');
-            background-size: cover;
-        }
-
-        .product-image-container {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 20px;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--accent-gold);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg-card);
-        }
-
-        .product-image-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .service-image-container {
-            width: 70px;
-            height: 70px;
-            margin-bottom: 25px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 1px solid var(--accent-gold);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg-card);
-        }
-
-        .service-image-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Override icon style for image */
-        .product-card .product-image-container,
-        .service-card .service-image-container {
-            font-size: 0;
-            /* Hide any text/icon size issues */
-        }
-    </style>
 </head>
 
 <body>
@@ -250,8 +194,8 @@
 
             <div class="services-grid">
                 <div class="service-card">
-                    <div class="service-image-container">
-                        <img src="images/import-export.png" alt="Import & Export">
+                    <div class="service-icon">
+                        <i class="fas fa-globe"></i>
                     </div>
                     <h3>Import & Export</h3>
                     <p>Global trade solutions including customs clearance, compliance management, and documentation
@@ -261,8 +205,8 @@
 
                 <div class="service-card featured">
                     <div class="service-badge">Most Popular</div>
-                    <div class="service-image-container">
-                        <img src="images/shipping.png" alt="Shipping & Logistics">
+                    <div class="service-icon">
+                        <i class="fas fa-ship"></i>
                     </div>
                     <h3>Shipping & Logistics</h3>
                     <p>End-to-end freight and supply chain services ensuring smooth cargo movement with reliable
@@ -324,72 +268,52 @@
 
             <div class="products-grid">
                 <div class="product-card">
-                    <div class="product-image-container">
-                        <img src="images/compostable.png" alt="Compostable Products">
-                    </div>
+                    <div class="product-icon"><i class="fas fa-recycle"></i></div>
                     <h4>Compostable Products</h4>
                     <p>Eco-friendly biodegradable solutions</p>
                 </div>
                 <div class="product-card">
-                    <div class="product-image-container">
-                        <img src="images/medicine.png" alt="Organic Medicine">
-                    </div>
+                    <div class="product-icon"><i class="fas fa-pills"></i></div>
                     <h4>Organic Medicine</h4>
                     <p>Natural medicinal products</p>
                 </div>
                 <div class="product-card">
-                    <div class="product-image-container">
-                        <img src="images/oil.png" alt="Cold Pressed Oils">
-                    </div>
+                    <div class="product-icon"><i class="fas fa-oil-can"></i></div>
                     <h4>Cold Pressed Oils</h4>
                     <p>Premium quality oils</p>
                 </div>
                 <div class="product-card">
-                    <div class="product-image-container">
-                        <img src="images/energy.png" alt="Energy Solutions">
-                    </div>
+                    <div class="product-icon"><i class="fas fa-solar-panel"></i></div>
                     <h4>Energy Solutions</h4>
                     <p>Solar and wind energy</p>
                 </div>
                 <div class="product-card">
-                    <div class="product-image-container">
-                        <img src="images/home-care.png" alt="Home Care">
-                    </div>
+                    <div class="product-icon"><i class="fas fa-home"></i></div>
                     <h4>Home Care</h4>
                     <p>Natural cleaning products</p>
                 </div>
                 <div class="product-card">
-                    <div class="product-image-container">
-                        <img src="images/personal-care.png" alt="Personal Care">
-                    </div>
+                    <div class="product-icon"><i class="fas fa-spa"></i></div>
                     <h4>Personal Care</h4>
                     <p>Organic beauty products</p>
                 </div>
                 <div class="product-card">
-                    <div class="product-image-container">
-                        <img src="images/spices.png" alt="Indian Spices">
-                    </div>
+                    <div class="product-icon"><i class="fas fa-pepper-hot"></i></div>
                     <h4>Indian Spices</h4>
-                    <p>Authentic masalas</p>
+                    <p>Authentic flavors</p>
                 </div>
                 <div class="product-card">
-                    <div class="product-image-container">
-                        <img src="images/paint.png" alt="Eco-Friendly Paint">
-                    </div>
+                    <div class="product-icon"><i class="fas fa-paint-roller"></i></div>
                     <h4>Eco-Friendly Paint</h4>
                     <p>Safe for environment</p>
                 </div>
                 <div class="product-card">
-                    <div class="product-image-container">
-                        <img src="images/produce.png" alt="Organic Produce">
-                    </div>
+                    <div class="product-icon"><i class="fas fa-carrot"></i></div>
                     <h4>Organic Produce</h4>
                     <p>Fresh fruits & vegetables</p>
                 </div>
                 <div class="product-card">
-                    <div class="product-image-container">
-                        <img src="images/furniture.png" alt="Luxury Furniture">
-                    </div>
+                    <div class="product-icon"><i class="fas fa-couch"></i></div>
                     <h4>Luxury Furniture</h4>
                     <p>Handcrafted excellence</p>
                 </div>

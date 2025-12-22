@@ -604,18 +604,78 @@
                                 </div>
 
                                 <div class="form-section">
-                                    <h4>AI Configuration</h4>
+                                    <h4><i class="fas fa-robot"></i> AI Configuration</h4>
+
+                                    <!-- Gemini API Status -->
+                                    <div class="api-status-card" id="gemini-status-card">
+                                        <div class="status-header">
+                                            <span class="status-label">Gemini AI Status</span>
+                                            <span class="status-indicator" id="gemini-status-indicator">
+                                                <i class="fas fa-circle"></i> Checking...
+                                            </span>
+                                        </div>
+                                    </div>
+
                                     <div class="form-group">
                                         <label for="setting-gemini-key">Gemini API Key</label>
-                                        <input type="password" id="setting-gemini-key"
-                                            placeholder="Enter your Gemini API key">
+                                        <div class="input-with-button">
+                                            <input type="password" id="setting-gemini-key"
+                                                placeholder="Enter your Gemini API key">
+                                            <button type="button" id="toggle-key-visibility" class="btn btn-ghost">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
                                         <small>Get your API key from <a href="https://aistudio.google.com/apikey"
                                                 target="_blank">Google AI Studio</a></small>
+                                    </div>
+
+                                    <div class="form-row" style="margin-top: 15px;">
+                                        <button type="button" id="test-gemini-btn" class="btn btn-secondary">
+                                            <i class="fas fa-plug"></i> Test Connection
+                                        </button>
+                                        <button type="button" id="save-gemini-key-btn" class="btn btn-primary">
+                                            <i class="fas fa-save"></i> Save API Key
+                                        </button>
+                                    </div>
+
+                                    <!-- AI Feature Tests -->
+                                    <div class="ai-tests-section" style="margin-top: 25px;">
+                                        <h5 style="margin-bottom: 15px; color: var(--text-secondary);">
+                                            <i class="fas fa-vial"></i> Test AI Features
+                                        </h5>
+
+                                        <div class="test-cards-grid">
+                                            <div class="test-card">
+                                                <div class="test-card-header">
+                                                    <i class="fas fa-share-alt"></i>
+                                                    <span>Social Media Generator</span>
+                                                </div>
+                                                <p>Generate sample social posts to verify AI is working</p>
+                                                <button type="button" id="test-social-btn"
+                                                    class="btn btn-secondary btn-sm">
+                                                    <i class="fas fa-play"></i> Run Test
+                                                </button>
+                                                <div class="test-result" id="social-test-result"></div>
+                                            </div>
+
+                                            <div class="test-card">
+                                                <div class="test-card-header">
+                                                    <i class="fas fa-search"></i>
+                                                    <span>SEO Generator</span>
+                                                </div>
+                                                <p>Generate sample SEO content to verify AI is working</p>
+                                                <button type="button" id="test-seo-btn"
+                                                    class="btn btn-secondary btn-sm">
+                                                    <i class="fas fa-play"></i> Run Test
+                                                </button>
+                                                <div class="test-result" id="seo-test-result"></div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save"></i> Save Settings
+                                    <i class="fas fa-save"></i> Save All Settings
                                 </button>
                             </form>
                         </div>
