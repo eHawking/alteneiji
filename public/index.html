@@ -25,12 +25,69 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
 
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Fallback Font Awesome from jsDelivr -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .hero-section {
+            background: linear-gradient(rgba(15, 20, 25, 0.7), rgba(15, 20, 25, 0.7)), url('images/hero-bg.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .light-mode .hero-section {
+            background: linear-gradient(rgba(240, 240, 240, 0.8), rgba(240, 240, 240, 0.8)), url('images/hero-bg.png');
+            background-size: cover;
+        }
+
+        .product-image-container {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--accent-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-card);
+        }
+
+        .product-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .service-image-container {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 25px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 1px solid var(--accent-gold);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-card);
+        }
+
+        .service-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Override icon style for image */
+        .product-card .product-image-container,
+        .service-card .service-image-container {
+            font-size: 0;
+            /* Hide any text/icon size issues */
+        }
+    </style>
 </head>
 
 <body>
@@ -204,8 +261,8 @@
 
                 <div class="service-card featured">
                     <div class="service-badge">Most Popular</div>
-                    <div class="service-icon">
-                        <i class="fas fa-ship"></i>
+                    <div class="service-image-container">
+                        <img src="images/shipping.png" alt="Shipping & Logistics">
                     </div>
                     <h3>Shipping & Logistics</h3>
                     <p>End-to-end freight and supply chain services ensuring smooth cargo movement with reliable
@@ -277,7 +334,9 @@
                     <p>Natural medicinal products</p>
                 </div>
                 <div class="product-card">
-                    <div class="product-icon"><i class="fas fa-oil-can"></i></div>
+                    <div class="product-image-container">
+                        <img src="images/oil.png" alt="Cold Pressed Oils">
+                    </div>
                     <h4>Cold Pressed Oils</h4>
                     <p>Premium quality oils</p>
                 </div>
@@ -297,9 +356,11 @@
                     <p>Organic beauty products</p>
                 </div>
                 <div class="product-card">
-                    <div class="product-icon"><i class="fas fa-pepper-hot"></i></div>
+                    <div class="product-image-container">
+                        <img src="images/spices.png" alt="Indian Spices">
+                    </div>
                     <h4>Indian Spices</h4>
-                    <p>Authentic flavors</p>
+                    <p>Authentic masalas</p>
                 </div>
                 <div class="product-card">
                     <div class="product-icon"><i class="fas fa-paint-roller"></i></div>
@@ -315,6 +376,15 @@
                     <div class="product-icon"><i class="fas fa-couch"></i></div>
                     <h4>Luxury Furniture</h4>
                     <p>Handcrafted excellence</p>
+                </div>
+
+                <!-- NEW PRODUCT -->
+                <div class="product-card featured">
+                    <div class="product-image-container">
+                        <img src="images/nano-banana.png" alt="Nano Banana Pro">
+                    </div>
+                    <h4>Nano Banana Pro</h4>
+                    <p>Premium organic banana</p>
                 </div>
             </div>
         </div>
