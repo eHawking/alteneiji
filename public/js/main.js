@@ -3,6 +3,27 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Theme Toggle - Default to light mode
+    const themeToggle = document.getElementById('theme-toggle');
+    const savedTheme = localStorage.getItem('theme') || 'light';
+
+    // Apply saved theme on load (default light)
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    } else {
+        document.body.classList.remove('light-mode');
+        themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+    }
+
+    // Theme toggle click handler
+    themeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('light-mode');
+        const isLight = document.body.classList.contains('light-mode');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        themeToggle.innerHTML = isLight ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    });
+
     // Navigation scroll effect
     const navbar = document.getElementById('navbar');
     window.addEventListener('scroll', () => {

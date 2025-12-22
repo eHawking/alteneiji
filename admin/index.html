@@ -1,20 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Alteneiji Group</title>
-    
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+
     <link rel="stylesheet" href="css/admin.css">
 </head>
+
 <body>
     <!-- Login Screen -->
     <div id="login-screen" class="login-screen">
@@ -49,7 +54,7 @@
                 <i class="fas fa-building"></i>
                 <span>Alteneiji Admin</span>
             </div>
-            
+
             <nav class="sidebar-nav">
                 <a href="#dashboard" class="nav-item active" data-page="dashboard">
                     <i class="fas fa-tachometer-alt"></i>
@@ -67,7 +72,7 @@
                     <i class="fas fa-concierge-bell"></i>
                     <span>Services</span>
                 </a>
-                
+
                 <div class="nav-section">AI Features</div>
                 <a href="#ai-seo" class="nav-item" data-page="ai-seo">
                     <i class="fas fa-search"></i>
@@ -81,7 +86,7 @@
                     <i class="fas fa-bullhorn"></i>
                     <span>AI Marketing</span>
                 </a>
-                
+
                 <div class="nav-section">Management</div>
                 <a href="#contacts" class="nav-item" data-page="contacts">
                     <i class="fas fa-envelope"></i>
@@ -100,7 +105,7 @@
                     <span>Settings</span>
                 </a>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <button id="logout-btn" class="btn btn-ghost">
                     <i class="fas fa-sign-out-alt"></i>
@@ -159,7 +164,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="dashboard-grid">
                         <div class="card">
                             <div class="card-header">
@@ -190,12 +195,13 @@
                         <h3>AI-Powered SEO Generator</h3>
                         <p>Generate optimized meta tags and SEO content using Gemini AI</p>
                     </div>
-                    
+
                     <div class="card">
                         <div class="card-body">
                             <div class="form-group">
                                 <label for="seo-content">Content to Analyze</label>
-                                <textarea id="seo-content" rows="6" placeholder="Paste your page content, product description, or any text you want to optimize for SEO..."></textarea>
+                                <textarea id="seo-content" rows="6"
+                                    placeholder="Paste your page content, product description, or any text you want to optimize for SEO..."></textarea>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
@@ -215,7 +221,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div id="seo-results" class="card hidden">
                         <div class="card-header">
                             <h3><i class="fas fa-check-circle"></i> Generated SEO Content</h3>
@@ -260,12 +266,13 @@
                         <h3>AI Social Media Generator</h3>
                         <p>Generate platform-optimized social media posts for all your channels</p>
                     </div>
-                    
+
                     <div class="card">
                         <div class="card-body">
                             <div class="form-group">
                                 <label for="social-topic">Topic / Content to Promote</label>
-                                <textarea id="social-topic" rows="4" placeholder="Describe what you want to promote... e.g., 'New organic spice collection arriving this week, featuring authentic Indian flavors'"></textarea>
+                                <textarea id="social-topic" rows="4"
+                                    placeholder="Describe what you want to promote... e.g., 'New organic spice collection arriving this week, featuring authentic Indian flavors'"></textarea>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
@@ -304,7 +311,7 @@
                             </button>
                         </div>
                     </div>
-                    
+
                     <div id="social-results" class="hidden">
                         <div class="social-posts-grid">
                             <!-- Posts will be inserted here -->
@@ -323,16 +330,18 @@
                         <h3>AI Marketing Campaign Generator</h3>
                         <p>Generate comprehensive marketing campaign strategies with AI</p>
                     </div>
-                    
+
                     <div class="card">
                         <div class="card-body">
                             <div class="form-group">
                                 <label for="marketing-goal">Campaign Goal</label>
-                                <input type="text" id="marketing-goal" placeholder="e.g., Increase brand awareness, Generate leads for Gulfood 2026">
+                                <input type="text" id="marketing-goal"
+                                    placeholder="e.g., Increase brand awareness, Generate leads for Gulfood 2026">
                             </div>
                             <div class="form-group">
                                 <label for="marketing-audience">Target Audience</label>
-                                <input type="text" id="marketing-audience" placeholder="e.g., B2B buyers in UAE, International food importers">
+                                <input type="text" id="marketing-audience"
+                                    placeholder="e.g., B2B buyers in UAE, International food importers">
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
@@ -358,7 +367,7 @@
                             </button>
                         </div>
                     </div>
-                    
+
                     <div id="marketing-results" class="card hidden">
                         <div class="card-header">
                             <h3 id="campaign-name">Campaign Strategy</h3>
@@ -433,10 +442,11 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="setting-tagline">Tagline</label>
-                                        <input type="text" id="setting-tagline" value="Emirati Footprints Leading Trade Frontiers">
+                                        <input type="text" id="setting-tagline"
+                                            value="Emirati Footprints Leading Trade Frontiers">
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-section">
                                     <h4>Contact Information</h4>
                                     <div class="form-group">
@@ -449,19 +459,22 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="setting-address">Address</label>
-                                        <textarea id="setting-address" rows="2">Al-Teneiji, MF-17, Alsuaidi building, Opposite San Marco hotel, Almararr, Deira, Dubai</textarea>
+                                        <textarea id="setting-address"
+                                            rows="2">Al-Teneiji, MF-17, Alsuaidi building, Opposite San Marco hotel, Almararr, Deira, Dubai</textarea>
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-section">
                                     <h4>AI Configuration</h4>
                                     <div class="form-group">
                                         <label for="setting-gemini-key">Gemini API Key</label>
-                                        <input type="password" id="setting-gemini-key" placeholder="Enter your Gemini API key">
-                                        <small>Get your API key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></small>
+                                        <input type="password" id="setting-gemini-key"
+                                            placeholder="Enter your Gemini API key">
+                                        <small>Get your API key from <a href="https://aistudio.google.com/apikey"
+                                                target="_blank">Google AI Studio</a></small>
                                     </div>
                                 </div>
-                                
+
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-save"></i> Save Settings
                                 </button>
@@ -575,4 +588,5 @@
 
     <script src="js/admin.js"></script>
 </body>
+
 </html>
