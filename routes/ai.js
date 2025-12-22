@@ -283,4 +283,118 @@ router.get('/marketing/campaigns',
     })
 );
 
+/**
+ * @route POST /api/ai/video/generate
+ * @desc Generate marketing video using AI (Sora 2, Veo 3.1, Pippit AI)
+ */
+router.post('/video/generate',
+    authenticate,
+    [
+        body('prompt').notEmpty().withMessage('Video description is required'),
+        body('platform').isIn(['sora', 'veo', 'pippit']).withMessage('Invalid platform'),
+        body('style').optional(),
+        body('duration').optional().isInt({ min: 5, max: 60 }),
+        body('aspectRatio').optional()
+    ],
+    asyncHandler(async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                errors: errors.array()
+            });
+        }
+
+        const { prompt, platform, style, duration = 15, aspectRatio = '16:9', options = {} } = req.body;
+
+        // Store video generation job
+        const uuid = uuidv4();
+        await insert(
+            `INSERT INTO ai_video_jobs 
+             (uuid, platform, prompt, style, duration, aspect_ratio, options, status, created_by) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, 'processing', ?)`,
+            [uuid, platform, prompt, style, duration, aspectRatio, JSON.stringify(options), req.user.id]
+        );
+
+        // Note: Actual video generation would integrate with respective APIs
+        // Sora 2: OpenAI's video generation API
+        // Veo 3.1: Google's video generation API  
+        // Pippit: Pippit AI's marketing video API
+
+        // For now, return job ID for status polling
+        res.json({
+            success: true,
+            data: {
+                jobId: uuid,
+                message: `Video generation started with ${platform}. This may take a few minutes.`,
+                estimatedTime: duration <= 15 ? '2-3 minutes' : duration <= 30 ? '4-5 minutes' : '5-8 minutes'
+            }
+        });
+    })
+);
+
+/**
+ * @route GET /api/ai/video/status/:jobId
+ * @desc Check video generation status
+ */
+router.get('/video/status/:jobId',
+    authenticate,
+    asyncHandler(async (req, res) => {
+        const { jobId } = req.params;
+
+        const jobs = await query(
+            `SELECT uuid, platform, status, video_url, thumbnail_url, error, created_at, completed_at 
+             FROM ai_video_jobs WHERE uuid = ?`,
+            [jobId]
+        );
+
+        if (!jobs || jobs.length === 0) {
+            throw new AppError('Video job not found', 404);
+        }
+
+        res.json({
+            success: true,
+            data: {
+                status: jobs[0].status,
+                videoUrl: jobs[0].video_url,
+                thumbnailUrl: jobs[0].thumbnail_url,
+                error: jobs[0].error,
+                createdAt: jobs[0].created_at,
+                completedAt: jobs[0].completed_at
+            }
+        });
+    })
+);
+
+/**
+ * @route GET /api/ai/video/recent
+ * @desc Get recent video generation jobs
+ */
+router.get('/video/recent',
+    authenticate,
+    asyncHandler(async (req, res) => {
+        const { limit = 10 } = req.query;
+
+        const videos = await query(
+            `SELECT uuid, platform, prompt, style, duration, aspect_ratio, status, video_url, thumbnail_url, created_at 
+             FROM ai_video_jobs 
+             WHERE created_by = ? AND status = 'completed'
+             ORDER BY created_at DESC 
+             LIMIT ?`,
+            [req.user.id, parseInt(limit)]
+        );
+
+        res.json({
+            success: true,
+            data: videos.map(v => ({
+                ...v,
+                thumbnailUrl: v.thumbnail_url,
+                videoUrl: v.video_url,
+                aspectRatio: v.aspect_ratio
+            }))
+        });
+    })
+);
+
 export default router;
+

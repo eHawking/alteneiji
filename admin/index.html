@@ -86,6 +86,10 @@
                     <i class="fas fa-bullhorn"></i>
                     <span>AI Marketing</span>
                 </a>
+                <a href="#ai-video" class="nav-item" data-page="ai-video">
+                    <i class="fas fa-video"></i>
+                    <span>Video Generator</span>
+                </a>
 
                 <div class="nav-section">Management</div>
                 <a href="#contacts" class="nav-item" data-page="contacts">
@@ -374,6 +378,141 @@
                         </div>
                         <div class="card-body">
                             <div id="campaign-content"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Video Generator Page -->
+                <div id="page-ai-video" class="page">
+                    <div class="page-header">
+                        <h3>AI Marketing Video Generator</h3>
+                        <p>Generate professional marketing videos using AI (Sora 2, Veo 3.1, Pippit AI)</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="video-prompt">Video Description / Script</label>
+                                <textarea id="video-prompt" rows="4"
+                                    placeholder="Describe your video... e.g., 'A professional product showcase of organic spices with cinematic lighting, warm colors, slow motion close-ups of spices being poured, Dubai skyline in background'"></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="video-platform">AI Platform</label>
+                                    <select id="video-platform">
+                                        <option value="sora">Sora 2 (OpenAI)</option>
+                                        <option value="veo">Veo 3.1 (Google)</option>
+                                        <option value="pippit">Pippit AI</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="video-style">Video Style</label>
+                                    <select id="video-style">
+                                        <option value="cinematic">Cinematic</option>
+                                        <option value="commercial">Commercial</option>
+                                        <option value="documentary">Documentary</option>
+                                        <option value="social-media">Social Media</option>
+                                        <option value="product-showcase">Product Showcase</option>
+                                        <option value="corporate">Corporate</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="video-duration">Duration</label>
+                                    <select id="video-duration">
+                                        <option value="5">5 seconds</option>
+                                        <option value="10">10 seconds</option>
+                                        <option value="15" selected>15 seconds</option>
+                                        <option value="30">30 seconds</option>
+                                        <option value="60">60 seconds</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="video-aspect">Aspect Ratio</label>
+                                    <select id="video-aspect">
+                                        <option value="16:9">16:9 (Landscape)</option>
+                                        <option value="9:16">9:16 (Portrait/Reels)</option>
+                                        <option value="1:1">1:1 (Square)</option>
+                                        <option value="4:5">4:5 (Instagram)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Additional Options</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="video-music" checked>
+                                        <i class="fas fa-music"></i> Add Background Music
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="video-voiceover">
+                                        <i class="fas fa-microphone"></i> Generate Voiceover
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="video-captions">
+                                        <i class="fas fa-closed-captioning"></i> Add Captions
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="video-logo" checked>
+                                        <i class="fas fa-image"></i> Add Logo Watermark
+                                    </label>
+                                </div>
+                            </div>
+                            <button id="generate-video-btn" class="btn btn-primary">
+                                <i class="fas fa-film"></i> Generate Video
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="video-results" class="card hidden">
+                        <div class="card-header">
+                            <h3><i class="fas fa-check-circle"></i> Video Generation Started</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="video-preview">
+                                <div class="video-placeholder">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Your video is being generated...</p>
+                                    <p class="text-muted">This may take 2-5 minutes depending on the platform and
+                                        duration.</p>
+                                </div>
+                            </div>
+                            <div class="video-info">
+                                <div class="info-item">
+                                    <span class="label">Platform:</span>
+                                    <span id="video-result-platform">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">Status:</span>
+                                    <span id="video-result-status" class="status-badge processing">Processing</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">Estimated Time:</span>
+                                    <span id="video-result-time">~3 minutes</span>
+                                </div>
+                            </div>
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary" id="video-refresh-btn">
+                                    <i class="fas fa-sync-alt"></i> Refresh Status
+                                </button>
+                                <button class="btn btn-success hidden" id="video-download-btn">
+                                    <i class="fas fa-download"></i> Download Video
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Videos -->
+                    <div class="card" style="margin-top: 20px;">
+                        <div class="card-header">
+                            <h3>Recent Generated Videos</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="recent-videos" class="video-gallery">
+                                <p class="empty-state">No videos generated yet. Create your first AI marketing video
+                                    above!</p>
+                            </div>
                         </div>
                     </div>
                 </div>

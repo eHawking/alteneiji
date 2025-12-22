@@ -147,6 +147,7 @@ function navigateTo(pageId) {
         'ai-seo': 'AI SEO Generator',
         'ai-social': 'Social Media Generator',
         'ai-marketing': 'AI Marketing',
+        'ai-video': 'AI Video Generator',
         'contacts': 'Contact Submissions',
         'gulfood': 'Gulfood 2026 Registrations',
         'users': 'User Management',
@@ -653,6 +654,171 @@ async function loadUsers() {
 }
 
 // =====================
+// AI VIDEO GENERATOR
+// =====================
+
+async function generateVideo() {
+    const prompt = document.getElementById('video-prompt').value;
+    const platform = document.getElementById('video-platform').value;
+    const style = document.getElementById('video-style').value;
+    const duration = document.getElementById('video-duration').value;
+    const aspect = document.getElementById('video-aspect').value;
+
+    const options = {
+        music: document.getElementById('video-music').checked,
+        voiceover: document.getElementById('video-voiceover').checked,
+        captions: document.getElementById('video-captions').checked,
+        logo: document.getElementById('video-logo').checked
+    };
+
+    if (!prompt.trim()) {
+        showToast('Please enter a video description', 'error');
+        return;
+    }
+
+    const platformNames = {
+        'sora': 'Sora 2 (OpenAI)',
+        'veo': 'Veo 3.1 (Google)',
+        'pippit': 'Pippit AI'
+    };
+
+    showLoading();
+    try {
+        const response = await apiRequest('/ai/video/generate', {
+            method: 'POST',
+            body: JSON.stringify({
+                prompt,
+                platform,
+                style,
+                duration: parseInt(duration),
+                aspectRatio: aspect,
+                options
+            })
+        });
+
+        // Display results
+        document.getElementById('video-result-platform').textContent = platformNames[platform];
+        document.getElementById('video-result-status').textContent = 'Processing';
+        document.getElementById('video-result-status').className = 'status-badge processing';
+
+        const estimatedTime = duration <= 15 ? '~2 minutes' : duration <= 30 ? '~4 minutes' : '~6 minutes';
+        document.getElementById('video-result-time').textContent = estimatedTime;
+
+        document.getElementById('video-results').classList.remove('hidden');
+
+        // Store job ID for status checking
+        window.currentVideoJob = response.data?.jobId || null;
+
+        showToast('Video generation started! This may take a few minutes.', 'success');
+
+        // If we got a jobId, start polling for status
+        if (response.data?.jobId) {
+            pollVideoStatus(response.data.jobId);
+        } else {
+            // Demo mode - simulate completion after a delay
+            simulateVideoCompletion();
+        }
+    } catch (error) {
+        showToast(error.message || 'Failed to start video generation', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function pollVideoStatus(jobId) {
+    let attempts = 0;
+    const maxAttempts = 60; // 5 minutes max
+
+    const checkStatus = async () => {
+        try {
+            const response = await apiRequest(`/ai/video/status/${jobId}`);
+            const status = response.data.status;
+
+            if (status === 'completed') {
+                document.getElementById('video-result-status').textContent = 'Completed';
+                document.getElementById('video-result-status').className = 'status-badge completed';
+                document.getElementById('video-download-btn').classList.remove('hidden');
+                document.getElementById('video-download-btn').onclick = () => {
+                    window.open(response.data.videoUrl, '_blank');
+                };
+
+                // Update placeholder with video
+                const placeholder = document.querySelector('.video-placeholder');
+                placeholder.innerHTML = `
+                    <video controls style="width: 100%; border-radius: 8px;">
+                        <source src="${response.data.videoUrl}" type="video/mp4">
+                    </video>
+                `;
+
+                showToast('Video generated successfully!', 'success');
+                loadRecentVideos();
+            } else if (status === 'failed') {
+                document.getElementById('video-result-status').textContent = 'Failed';
+                document.getElementById('video-result-status').className = 'status-badge failed';
+                showToast('Video generation failed. Please try again.', 'error');
+            } else if (attempts < maxAttempts) {
+                attempts++;
+                setTimeout(checkStatus, 5000);
+            }
+        } catch (error) {
+            console.error('Error checking video status:', error);
+        }
+    };
+
+    setTimeout(checkStatus, 5000);
+}
+
+function simulateVideoCompletion() {
+    // Demo simulation for when API is not connected
+    setTimeout(() => {
+        document.getElementById('video-result-status').textContent = 'Completed';
+        document.getElementById('video-result-status').className = 'status-badge completed';
+        document.getElementById('video-download-btn').classList.remove('hidden');
+
+        const placeholder = document.querySelector('.video-placeholder');
+        placeholder.innerHTML = `
+            <i class="fas fa-check-circle" style="color: var(--accent-green);"></i>
+            <p>Video generated successfully!</p>
+            <p class="text-muted">Note: Actual video generation requires API keys to be configured.</p>
+        `;
+
+        showToast('Video generation simulated! Configure API keys for actual generation.', 'success');
+    }, 3000);
+}
+
+function refreshVideoStatus() {
+    if (window.currentVideoJob) {
+        pollVideoStatus(window.currentVideoJob);
+        showToast('Refreshing status...', 'info');
+    } else {
+        showToast('No video job in progress', 'info');
+    }
+}
+
+async function loadRecentVideos() {
+    try {
+        const response = await apiRequest('/ai/video/recent');
+        const container = document.getElementById('recent-videos');
+
+        if (response.data && response.data.length > 0) {
+            container.innerHTML = response.data.map(v => `
+                <div class="video-item">
+                    <div class="video-thumbnail">
+                        ${v.thumbnailUrl ? `<img src="${v.thumbnailUrl}" alt="Video thumbnail">` : '<i class="fas fa-film"></i>'}
+                    </div>
+                    <div class="video-details">
+                        <h4>${v.prompt?.substring(0, 30) || 'Marketing Video'}...</h4>
+                        <p>${v.platform} • ${v.duration}s • ${formatDate(v.created_at)}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+    } catch (error) {
+        console.error('Failed to load recent videos:', error);
+    }
+}
+
+// =====================
 // EVENT LISTENERS
 // =====================
 
@@ -698,6 +864,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // AI Marketing Generate
     document.getElementById('generate-marketing-btn').addEventListener('click', generateMarketingCampaign);
 
+    // AI Video Generate
+    document.getElementById('generate-video-btn').addEventListener('click', generateVideo);
+    document.getElementById('video-refresh-btn').addEventListener('click', refreshVideoStatus);
+
     // Save all social posts
     document.getElementById('save-all-posts').addEventListener('click', saveAllPosts);
 
@@ -731,3 +901,6 @@ document.addEventListener('DOMContentLoaded', () => {
 window.copySEOResults = copySEOResults;
 window.copyPostContent = copyPostContent;
 window.savePost = savePost;
+window.generateVideo = generateVideo;
+window.refreshVideoStatus = refreshVideoStatus;
+

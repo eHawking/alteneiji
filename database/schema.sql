@@ -254,6 +254,26 @@ CREATE TABLE IF NOT EXISTS ai_marketing_campaigns (
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
+-- AI Video Generation Jobs
+CREATE TABLE IF NOT EXISTS ai_video_jobs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    uuid VARCHAR(36) NOT NULL UNIQUE,
+    platform ENUM('sora', 'veo', 'pippit') NOT NULL,
+    prompt TEXT NOT NULL,
+    style VARCHAR(50),
+    duration INT DEFAULT 15,
+    aspect_ratio VARCHAR(20) DEFAULT '16:9',
+    options JSON,
+    status ENUM('pending', 'processing', 'completed', 'failed') DEFAULT 'pending',
+    video_url VARCHAR(500),
+    thumbnail_url VARCHAR(500),
+    error TEXT,
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
 -- ============================================
 -- SOCIAL MEDIA
 -- ============================================
