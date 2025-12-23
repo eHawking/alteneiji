@@ -125,51 +125,80 @@ export async function generateContent(prompt, options = {}) {
 /**
  * Generate an image using Gemini's image generation model
  * @param {string} prompt - Description of the image to generate
- * @returns {Promise<string>} Base64 encoded image or URL
+ * @returns {Promise<Object|null>} Base64 encoded image or null
  */
 export async function generateImage(prompt) {
     await ensureConfigured();
 
     if (!genAI) {
-        throw new Error('Gemini AI is not configured');
+        console.error('Gemini AI is not configured for image generation');
+        return null;
     }
 
     try {
-        // Use the image generation model
-        const imageModel = genAI.getGenerativeModel({
-            model: 'gemini-2.0-flash-exp',
+        console.log('Generating image for:', prompt.substring(0, 50) + '...');
+
+        // Try Imagen model first
+        try {
+            const imageModel = genAI.getGenerativeModel({
+                model: 'imagen-3.0-generate-002'
+            });
+
+            const result = await imageModel.generateImages({
+                prompt: `Professional social media marketing image: ${prompt}. Modern, vibrant, premium business aesthetic. High quality.`,
+                config: {
+                    numberOfImages: 1,
+                    aspectRatio: '16:9'
+                }
+            });
+
+            if (result?.generatedImages?.[0]) {
+                console.log('Image generated with Imagen');
+                return {
+                    base64: result.generatedImages[0].image.imageBytes,
+                    mimeType: 'image/png'
+                };
+            }
+        } catch (imagenError) {
+            console.log('Imagen not available, trying Gemini Flash...');
+        }
+
+        // Fallback to gemini-2.0-flash-exp
+        const fallbackModel = genAI.getGenerativeModel({
+            model: 'gemini-2.0-flash-exp'
+        });
+
+        const result = await fallbackModel.generateContent({
+            contents: [{
+                role: 'user',
+                parts: [{
+                    text: `Generate a professional social media marketing image for: ${prompt}. 
+                           The image should be vibrant, modern, and suitable for business marketing.`
+                }]
+            }],
             generationConfig: {
                 responseModalities: ['Text', 'Image']
             }
         });
 
-        const result = await imageModel.generateContent({
-            contents: [{
-                role: 'user',
-                parts: [{
-                    text: `Generate a professional social media marketing image for: ${prompt}. 
-                           The image should be vibrant, modern, and suitable for business marketing. 
-                           Style: Premium, clean, corporate but engaging.`
-                }]
-            }]
-        });
-
         const response = await result.response;
 
-        // Check if image was generated
-        for (const part of response.candidates[0].content.parts) {
-            if (part.inlineData) {
-                return {
-                    base64: part.inlineData.data,
-                    mimeType: part.inlineData.mimeType
-                };
+        if (response?.candidates?.[0]?.content?.parts) {
+            for (const part of response.candidates[0].content.parts) {
+                if (part.inlineData) {
+                    console.log('Image generated with Gemini Flash');
+                    return {
+                        base64: part.inlineData.data,
+                        mimeType: part.inlineData.mimeType
+                    };
+                }
             }
         }
 
+        console.log('No image data in response');
         return null;
     } catch (error) {
-        console.error('Gemini image generation error:', error);
-        // Return null instead of throwing to allow fallback
+        console.error('Image generation error:', error.message);
         return null;
     }
 }
