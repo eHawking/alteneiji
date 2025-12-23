@@ -243,6 +243,84 @@ router.post('/social/generate',
 );
 
 /**
+ * @route POST /api/ai/social/generate-single
+ * @desc Generate social media post for a single platform with image
+ */
+router.post('/social/generate-single',
+    authenticate,
+    [
+        body('topic').notEmpty().withMessage('Topic is required'),
+        body('platform').notEmpty().withMessage('Platform is required'),
+        body('tone').optional().isIn(['professional', 'casual', 'enthusiastic', 'formal']),
+        body('generateImages').optional().isBoolean()
+    ],
+    asyncHandler(async (req, res) => {
+        if (!gemini.isConfigured()) {
+            throw new AppError('AI service not configured', 503);
+        }
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                errors: errors.array()
+            });
+        }
+
+        const { topic, platform, tone = 'professional', generateImages = true } = req.body;
+        const fs = await import('fs');
+        const path = await import('path');
+
+        console.log(`Generating ${platform} post for: ${topic.substring(0, 50)}...`);
+
+        // Generate text for single platform
+        const posts = await gemini.generateSocialPost({
+            topic,
+            platforms: [platform],
+            tone,
+            includeHashtags: true
+        });
+
+        const data = posts[platform] || { content: 'Failed to generate content', hashtags: [] };
+
+        // Generate image if requested
+        if (generateImages && data.content) {
+            try {
+                console.log(`Generating image for ${platform}...`);
+                const imageResult = await gemini.generateImage(
+                    `${topic} - professional ${platform} marketing`
+                );
+
+                if (imageResult && imageResult.base64) {
+                    const timestamp = Date.now();
+                    const filename = `social-${platform}-${timestamp}.png`;
+                    const uploadsDir = path.default.join(process.cwd(), 'uploads', 'social');
+
+                    if (!fs.default.existsSync(uploadsDir)) {
+                        fs.default.mkdirSync(uploadsDir, { recursive: true });
+                    }
+
+                    const filePath = path.default.join(uploadsDir, filename);
+                    fs.default.writeFileSync(filePath, Buffer.from(imageResult.base64, 'base64'));
+
+                    data.imageUrl = `/uploads/social/${filename}`;
+                    console.log(`Image saved: ${filename}`);
+                } else {
+                    console.log('No image generated');
+                }
+            } catch (imgError) {
+                console.error(`Image generation failed:`, imgError.message);
+            }
+        }
+
+        res.json({
+            success: true,
+            data: data
+        });
+    })
+);
+
+/**
  * @route POST /api/ai/marketing/campaign
  * @desc Generate marketing campaign ideas
  */

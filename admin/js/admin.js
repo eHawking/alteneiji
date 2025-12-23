@@ -319,112 +319,156 @@ async function generateSocialPosts() {
         return;
     }
 
-    // Show progress cards, hide results
-    document.getElementById('social-progress').classList.remove('hidden');
-    document.getElementById('social-results').classList.add('hidden');
+    // Hide old results, show progress section with cards
+    document.getElementById('social-progress').classList.add('hidden');
+    document.getElementById('social-results').classList.remove('hidden');
 
-    // Reset all progress cards
-    platforms.forEach(p => {
-        const card = document.getElementById(`progress-${p}`);
-        if (card) {
-            card.classList.remove('complete');
-            card.classList.add('generating');
-            card.querySelector('.progress-bar').style.width = '0%';
-            card.querySelector('.progress-percent').textContent = '0%';
-        }
-    });
+    const container = document.querySelector('.social-posts-grid');
+    container.innerHTML = '';
 
-    // Simulate progress for each platform
-    const progressIntervals = {};
-    platforms.forEach(p => {
-        let progress = 0;
-        progressIntervals[p] = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress > 85) progress = 85; // Cap at 85% until complete
-            updateProgress(p, Math.floor(progress));
-        }, 200);
-    });
+    const platformIcons = {
+        instagram: 'fa-instagram',
+        facebook: 'fa-facebook',
+        twitter: 'fa-x-twitter',
+        linkedin: 'fa-linkedin'
+    };
 
-    try {
-        const response = await apiRequest('/ai/social/generate', {
-            method: 'POST',
-            body: JSON.stringify({ topic, tone, platforms, generateImages })
-        });
+    const platformColors = {
+        instagram: '#E4405F',
+        facebook: '#1877F2',
+        twitter: '#1DA1F2',
+        linkedin: '#0A66C2'
+    };
 
-        const posts = response.data;
-
-        // Complete all progress bars
-        platforms.forEach(p => {
-            clearInterval(progressIntervals[p]);
-            updateProgress(p, 100, true);
-        });
-
-        // Short delay to show 100%
-        await new Promise(r => setTimeout(r, 500));
-
-        const container = document.querySelector('.social-posts-grid');
-        container.innerHTML = '';
-
-        const platformIcons = {
-            instagram: 'fa-instagram',
-            facebook: 'fa-facebook',
-            twitter: 'fa-x-twitter',
-            linkedin: 'fa-linkedin'
-        };
-
-        for (const [platform, data] of Object.entries(posts)) {
-            if (data && data.content) {
-                const imageHtml = data.imageUrl
-                    ? `<div class="post-image"><img src="${data.imageUrl}" alt="${platform} post"></div>`
-                    : '';
-
-                container.innerHTML += `
-                    <div class="social-post-card" data-platform="${platform}">
-                        <div class="platform-header ${platform}">
-                            <i class="fab ${platformIcons[platform] || 'fa-share-alt'}"></i>
-                            <span>${platform.charAt(0).toUpperCase() + platform.slice(1)}</span>
-                            <span class="badge badge-published" style="margin-left: auto;">Saved ✓</span>
-                        </div>
-                        ${imageHtml}
-                        <div class="post-content">
-                            <div class="post-text">${data.content}</div>
-                            <div class="hashtags">
-                                ${(data.hashtags || []).map(h => `<span>#${h}</span>`).join(' ')}
-                            </div>
-                        </div>
-                        <div class="post-actions">
-                            <button class="btn btn-secondary btn-sm" onclick="copyPostContent('${platform}', this)">
-                                <i class="fas fa-copy"></i> Copy
-                            </button>
-                            <button class="btn btn-primary btn-sm" onclick="downloadPostImage('${platform}', this)">
-                                <i class="fas fa-download"></i> Download
-                            </button>
-                        </div>
+    // Create placeholder cards for each platform with progress
+    platforms.forEach(platform => {
+        container.innerHTML += `
+            <div class="social-post-card generating" id="post-card-${platform}" data-platform="${platform}">
+                <div class="platform-header ${platform}">
+                    <i class="fab ${platformIcons[platform] || 'fa-share-alt'}"></i>
+                    <span>${platform.charAt(0).toUpperCase() + platform.slice(1)}</span>
+                    <span class="post-status" style="margin-left: auto;">
+                        <i class="fas fa-spinner fa-spin"></i> <span class="percent-text">0%</span>
+                    </span>
+                </div>
+                <div class="post-image generating-placeholder">
+                    <div class="progress-circle">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="var(--border-color)" stroke-width="8"/>
+                            <circle class="progress-ring" cx="50" cy="50" r="45" fill="none" stroke="${platformColors[platform]}" stroke-width="8" 
+                                    stroke-dasharray="283" stroke-dashoffset="283" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+                        </svg>
+                        <span class="progress-value">0%</span>
                     </div>
-                `;
+                </div>
+                <div class="post-content">
+                    <div class="post-text skeleton-text">Generating content...</div>
+                </div>
+            </div>
+        `;
+    });
+
+    // Generate content for each platform individually
+    for (const platform of platforms) {
+        const card = document.getElementById(`post-card-${platform}`);
+        let progress = 0;
+
+        // Start progress animation
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 10;
+            if (progress > 90) progress = 90;
+            updateCardProgress(card, Math.floor(progress));
+        }, 150);
+
+        try {
+            // Generate content for this specific platform
+            const response = await apiRequest('/ai/social/generate-single', {
+                method: 'POST',
+                body: JSON.stringify({
+                    topic,
+                    tone,
+                    platform,
+                    generateImages
+                })
+            });
+
+            clearInterval(progressInterval);
+
+            const data = response.data;
+
+            // Complete progress
+            updateCardProgress(card, 100);
+            await new Promise(r => setTimeout(r, 300));
+
+            // Update card with actual content
+            card.classList.remove('generating');
+            card.innerHTML = `
+                <div class="platform-header ${platform}">
+                    <i class="fab ${platformIcons[platform] || 'fa-share-alt'}"></i>
+                    <span>${platform.charAt(0).toUpperCase() + platform.slice(1)}</span>
+                    <span class="badge badge-published" style="margin-left: auto;">✓ Done</span>
+                </div>
+                ${data.imageUrl ? `<div class="post-image"><img src="${data.imageUrl}" alt="${platform} post" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image\\'></i>'"></div>` : ''}
+                <div class="post-content">
+                    <div class="post-text">${data.content || 'Content generated'}</div>
+                    <div class="hashtags">
+                        ${(data.hashtags || []).map(h => `<span>#${h}</span>`).join(' ')}
+                    </div>
+                </div>
+                <div class="post-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="copyPostContent('${platform}', this)">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    ${data.imageUrl ? `<button class="btn btn-primary btn-sm" onclick="downloadPostImage('${platform}', this)">
+                        <i class="fas fa-download"></i> Download
+                    </button>` : ''}
+                </div>
+            `;
+
+            // Auto-save this post
+            try {
+                await apiRequest('/social/posts', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        platform,
+                        content: data.content,
+                        hashtags: data.hashtags || [],
+                        imageUrl: data.imageUrl || null,
+                        aiGenerated: true,
+                        aiPrompt: topic
+                    })
+                });
+            } catch (saveErr) {
+                console.error('Failed to save post:', saveErr);
             }
+
+        } catch (error) {
+            clearInterval(progressInterval);
+            card.classList.remove('generating');
+            card.classList.add('error');
+            card.querySelector('.post-status').innerHTML = '<i class="fas fa-exclamation-circle"></i> Error';
+            card.querySelector('.post-text').textContent = error.message || 'Generation failed';
+            console.error(`Failed to generate ${platform}:`, error);
         }
-
-        // Store generated data
-        window.generatedPosts = posts;
-
-        // Hide progress, show results
-        document.getElementById('social-progress').classList.add('hidden');
-        document.getElementById('social-results').classList.remove('hidden');
-
-        // Auto-save posts to database
-        await autoSavePosts(posts, topic, tone);
-
-        // Refresh history
-        await loadPostsHistory();
-
-        showToast('Posts generated and saved successfully!', 'success');
-    } catch (error) {
-        // Clear intervals and show error
-        platforms.forEach(p => clearInterval(progressIntervals[p]));
-        document.getElementById('social-progress').classList.add('hidden');
-        showToast(error.message || 'Failed to generate posts', 'error');
     }
+
+    // Refresh history after all done
+    await loadPostsHistory();
+    showToast('All posts generated!', 'success');
+}
+
+function updateCardProgress(card, percent) {
+    const progressRing = card.querySelector('.progress-ring');
+    const progressValue = card.querySelector('.progress-value');
+    const percentText = card.querySelector('.percent-text');
+
+    if (progressRing) {
+        // 283 is the circumference of circle with r=45
+        const offset = 283 - (283 * percent / 100);
+        progressRing.style.strokeDashoffset = offset;
+    }
+    if (progressValue) progressValue.textContent = `${percent}%`;
+    if (percentText) percentText.textContent = `${percent}%`;
 }
 
 function updateProgress(platform, percent, complete = false) {
