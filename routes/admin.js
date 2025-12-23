@@ -432,10 +432,10 @@ router.put('/gulfood/:id/status',
 router.get('/billing',
     authenticate,
     asyncHandler(async (req, res) => {
-        const gemini = await import('../config/gemini.js');
+        const geminiModule = await import('../config/gemini.js');
         const period = req.query.period || 'month';
 
-        const stats = await gemini.getUsageStats(period);
+        const stats = await geminiModule.default.getUsageStats(period);
 
         res.json({
             success: true,
