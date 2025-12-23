@@ -825,23 +825,29 @@ async function loadRecentVideos() {
 // GEMINI API & SETTINGS
 // =====================
 
+function updateStatusIndicator(status, text) {
+    const indicator = document.getElementById('gemini-status-indicator');
+    if (!indicator) return;
+    indicator.className = `status-indicator ${status}`;
+    indicator.innerHTML = `<i class="fas fa-circle"></i> ${text}`;
+}
+
 async function checkGeminiStatus() {
     const indicator = document.getElementById('gemini-status-indicator');
+    if (!indicator) return;
+
     indicator.className = 'status-indicator checking';
     indicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
 
     try {
         const response = await apiRequest('/ai/status');
         if (response.data && response.data.configured) {
-            indicator.className = 'status-indicator connected';
-            indicator.innerHTML = '<i class="fas fa-circle"></i> Connected';
+            updateStatusIndicator('connected', 'Connected');
         } else {
-            indicator.className = 'status-indicator disconnected';
-            indicator.innerHTML = '<i class="fas fa-circle"></i> Not Configured';
+            updateStatusIndicator('disconnected', 'Not Configured');
         }
     } catch (error) {
-        indicator.className = 'status-indicator disconnected';
-        indicator.innerHTML = '<i class="fas fa-circle"></i> Disconnected';
+        updateStatusIndicator('disconnected', 'Error');
     }
 }
 
@@ -854,22 +860,26 @@ async function testGeminiConnection() {
         return;
     }
 
+    // Update status to testing
+    updateStatusIndicator('checking', 'Testing...');
+
     showLoading();
     try {
-        // Test the API key by making a simple request
         const response = await apiRequest('/ai/test-connection', {
             method: 'POST',
             body: JSON.stringify({ apiKey })
         });
 
         if (response.success) {
+            updateStatusIndicator('connected', 'Connected ✓');
             showToast('✓ Gemini API connection successful!', 'success');
-            checkGeminiStatus();
         } else {
+            updateStatusIndicator('disconnected', 'Invalid Key');
             showToast('✗ Connection failed: ' + (response.error || 'Invalid API key'), 'error');
         }
     } catch (error) {
-        showToast('✗ Connection failed: ' + (error.message || 'Could not connect to Gemini API'), 'error');
+        updateStatusIndicator('disconnected', 'Failed');
+        showToast('✗ Connection failed: ' + (error.message || 'Could not connect'), 'error');
     } finally {
         hideLoading();
     }
@@ -884,6 +894,8 @@ async function saveGeminiApiKey() {
         return;
     }
 
+    updateStatusIndicator('checking', 'Saving...');
+
     showLoading();
     try {
         await apiRequest('/admin/settings/api-key', {
@@ -893,9 +905,10 @@ async function saveGeminiApiKey() {
                 value: apiKey
             })
         });
+        updateStatusIndicator('connected', 'Saved ✓');
         showToast('API key saved successfully!', 'success');
-        checkGeminiStatus();
     } catch (error) {
+        updateStatusIndicator('disconnected', 'Save Failed');
         showToast('Failed to save API key: ' + error.message, 'error');
     } finally {
         hideLoading();
