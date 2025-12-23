@@ -313,6 +313,56 @@
                             <button id="generate-social-btn" class="btn btn-primary">
                                 <i class="fas fa-magic"></i> Generate Posts
                             </button>
+                            <label class="checkbox-label" style="margin-left: 15px;">
+                                <input type="checkbox" id="generate-images" checked>
+                                <i class="fas fa-image"></i> Generate Images
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Progress Cards -->
+                    <div id="social-progress" class="hidden">
+                        <div class="social-progress-grid">
+                            <div class="progress-card" id="progress-instagram">
+                                <div class="progress-header">
+                                    <i class="fab fa-instagram"></i>
+                                    <span>Instagram</span>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: 0%"></div>
+                                </div>
+                                <div class="progress-percent">0%</div>
+                            </div>
+                            <div class="progress-card" id="progress-facebook">
+                                <div class="progress-header">
+                                    <i class="fab fa-facebook"></i>
+                                    <span>Facebook</span>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: 0%"></div>
+                                </div>
+                                <div class="progress-percent">0%</div>
+                            </div>
+                            <div class="progress-card" id="progress-twitter">
+                                <div class="progress-header">
+                                    <i class="fab fa-x-twitter"></i>
+                                    <span>X (Twitter)</span>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: 0%"></div>
+                                </div>
+                                <div class="progress-percent">0%</div>
+                            </div>
+                            <div class="progress-card" id="progress-linkedin">
+                                <div class="progress-header">
+                                    <i class="fab fa-linkedin"></i>
+                                    <span>LinkedIn</span>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: 0%"></div>
+                                </div>
+                                <div class="progress-percent">0%</div>
+                            </div>
                         </div>
                     </div>
 
@@ -324,6 +374,19 @@
                             <button id="save-all-posts" class="btn btn-success">
                                 <i class="fas fa-save"></i> Save All as Drafts
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- Posts History -->
+                    <div class="card" style="margin-top: 20px;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-history"></i> Generated Posts History</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="posts-history" class="posts-history-grid">
+                                <p class="empty-state">No posts generated yet. Create your first AI social media posts
+                                    above!</p>
+                            </div>
                         </div>
                     </div>
                 </div>

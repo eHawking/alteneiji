@@ -185,6 +185,9 @@ async function loadPageData(pageId) {
         case 'settings':
             await checkGeminiStatus();
             break;
+        case 'ai-social':
+            await loadPostsHistory();
+            break;
     }
 }
 
@@ -304,6 +307,7 @@ async function generateSocialPosts() {
     const tone = document.getElementById('social-tone').value;
     const platforms = Array.from(document.querySelectorAll('input[name="platform"]:checked'))
         .map(cb => cb.value);
+    const generateImages = document.getElementById('generate-images')?.checked ?? true;
 
     if (!topic.trim()) {
         showToast('Please enter a topic', 'error');
@@ -315,16 +319,50 @@ async function generateSocialPosts() {
         return;
     }
 
-    showLoading();
+    // Show progress cards, hide results
+    document.getElementById('social-progress').classList.remove('hidden');
+    document.getElementById('social-results').classList.add('hidden');
+
+    // Reset all progress cards
+    platforms.forEach(p => {
+        const card = document.getElementById(`progress-${p}`);
+        if (card) {
+            card.classList.remove('complete');
+            card.classList.add('generating');
+            card.querySelector('.progress-bar').style.width = '0%';
+            card.querySelector('.progress-percent').textContent = '0%';
+        }
+    });
+
+    // Simulate progress for each platform
+    const progressIntervals = {};
+    platforms.forEach(p => {
+        let progress = 0;
+        progressIntervals[p] = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 85) progress = 85; // Cap at 85% until complete
+            updateProgress(p, Math.floor(progress));
+        }, 200);
+    });
+
     try {
         const response = await apiRequest('/ai/social/generate', {
             method: 'POST',
-            body: JSON.stringify({ topic, tone, platforms })
+            body: JSON.stringify({ topic, tone, platforms, generateImages })
         });
 
         const posts = response.data;
-        const container = document.querySelector('.social-posts-grid');
 
+        // Complete all progress bars
+        platforms.forEach(p => {
+            clearInterval(progressIntervals[p]);
+            updateProgress(p, 100, true);
+        });
+
+        // Short delay to show 100%
+        await new Promise(r => setTimeout(r, 500));
+
+        const container = document.querySelector('.social-posts-grid');
         container.innerHTML = '';
 
         const platformIcons = {
@@ -336,12 +374,18 @@ async function generateSocialPosts() {
 
         for (const [platform, data] of Object.entries(posts)) {
             if (data && data.content) {
+                const imageHtml = data.imageUrl
+                    ? `<div class="post-image"><img src="${data.imageUrl}" alt="${platform} post"></div>`
+                    : '';
+
                 container.innerHTML += `
-                    <div class="social-post-card">
+                    <div class="social-post-card" data-platform="${platform}">
                         <div class="platform-header ${platform}">
                             <i class="fab ${platformIcons[platform] || 'fa-share-alt'}"></i>
                             <span>${platform.charAt(0).toUpperCase() + platform.slice(1)}</span>
+                            <span class="badge badge-published" style="margin-left: auto;">Saved ✓</span>
                         </div>
+                        ${imageHtml}
                         <div class="post-content">
                             <div class="post-text">${data.content}</div>
                             <div class="hashtags">
@@ -352,8 +396,8 @@ async function generateSocialPosts() {
                             <button class="btn btn-secondary btn-sm" onclick="copyPostContent('${platform}', this)">
                                 <i class="fas fa-copy"></i> Copy
                             </button>
-                            <button class="btn btn-primary btn-sm" onclick="savePost('${platform}', this)">
-                                <i class="fas fa-save"></i> Save Draft
+                            <button class="btn btn-primary btn-sm" onclick="downloadPostImage('${platform}', this)">
+                                <i class="fas fa-download"></i> Download
                             </button>
                         </div>
                     </div>
@@ -361,15 +405,115 @@ async function generateSocialPosts() {
             }
         }
 
-        // Store generated data for saving
+        // Store generated data
         window.generatedPosts = posts;
 
+        // Hide progress, show results
+        document.getElementById('social-progress').classList.add('hidden');
         document.getElementById('social-results').classList.remove('hidden');
-        showToast('Posts generated successfully!', 'success');
+
+        // Auto-save posts to database
+        await autoSavePosts(posts, topic, tone);
+
+        // Refresh history
+        await loadPostsHistory();
+
+        showToast('Posts generated and saved successfully!', 'success');
     } catch (error) {
+        // Clear intervals and show error
+        platforms.forEach(p => clearInterval(progressIntervals[p]));
+        document.getElementById('social-progress').classList.add('hidden');
         showToast(error.message || 'Failed to generate posts', 'error');
-    } finally {
-        hideLoading();
+    }
+}
+
+function updateProgress(platform, percent, complete = false) {
+    const card = document.getElementById(`progress-${platform}`);
+    if (!card) return;
+
+    card.querySelector('.progress-bar').style.width = `${percent}%`;
+    card.querySelector('.progress-percent').textContent = `${percent}%`;
+
+    if (complete) {
+        card.classList.remove('generating');
+        card.classList.add('complete');
+    }
+}
+
+async function autoSavePosts(posts, topic, tone) {
+    try {
+        for (const [platform, data] of Object.entries(posts)) {
+            if (data && data.content) {
+                await apiRequest('/social/posts', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        platform,
+                        content: data.content,
+                        hashtags: data.hashtags || [],
+                        imageUrl: data.imageUrl || null,
+                        aiGenerated: true,
+                        aiPrompt: topic,
+                        tone: tone
+                    })
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Failed to auto-save posts:', error);
+    }
+}
+
+async function loadPostsHistory() {
+    try {
+        const response = await apiRequest('/social/posts?limit=12');
+        const container = document.getElementById('posts-history');
+
+        if (response.data && response.data.length > 0) {
+            container.innerHTML = response.data.map(post => {
+                const platformColors = {
+                    instagram: '#E4405F',
+                    facebook: '#1877F2',
+                    twitter: '#1DA1F2',
+                    linkedin: '#0A66C2'
+                };
+                const imageHtml = post.image_url
+                    ? `<img src="${post.image_url}" alt="Post image">`
+                    : `<i class="fab fa-${post.platform === 'twitter' ? 'x-twitter' : post.platform}"></i>`;
+
+                return `
+                    <div class="history-item">
+                        <div class="history-item-image" style="background: ${platformColors[post.platform] || 'var(--bg-primary)'}20;">
+                            ${imageHtml}
+                        </div>
+                        <div class="history-item-content">
+                            <div class="platform-icon">
+                                <i class="fab fa-${post.platform === 'twitter' ? 'x-twitter' : post.platform}" style="color: ${platformColors[post.platform]}"></i>
+                                <span>${post.platform.charAt(0).toUpperCase() + post.platform.slice(1)}</span>
+                            </div>
+                            <div class="post-text">${post.content.substring(0, 100)}...</div>
+                            <div class="post-date">${formatDate(post.created_at)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            container.innerHTML = '<p class="empty-state">No posts generated yet.</p>';
+        }
+    } catch (error) {
+        console.error('Failed to load posts history:', error);
+    }
+}
+
+function downloadPostImage(platform, btn) {
+    const card = btn.closest('.social-post-card');
+    const img = card.querySelector('.post-image img');
+    if (img) {
+        const link = document.createElement('a');
+        link.href = img.src;
+        link.download = `${platform}-post-${Date.now()}.jpg`;
+        link.click();
+    } else {
+        showToast('No image to download', 'error');
     }
 }
 
@@ -1085,4 +1229,4 @@ window.copyPostContent = copyPostContent;
 window.savePost = savePost;
 window.generateVideo = generateVideo;
 window.refreshVideoStatus = refreshVideoStatus;
-
+window.downloadPostImage = downloadPostImage;
