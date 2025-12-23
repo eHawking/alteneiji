@@ -3,17 +3,80 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const apiKey = process.env.GEMINI_API_KEY;
-
-// Initialize Gemini client if API key is available
+// Initialize variables for dynamic API key management
 let genAI = null;
 let model = null;
+let currentApiKey = process.env.GEMINI_API_KEY || '';
 
-if (apiKey && apiKey !== '') {
-    genAI = new GoogleGenerativeAI(apiKey);
-    model = genAI.getGenerativeModel({
-        model: process.env.GEMINI_MODEL || 'gemini-2.0-flash'
-    });
+/**
+ * Initialize or reinitialize the Gemini client with an API key
+ * @param {string} apiKey - The API key to use
+ */
+function initializeClient(apiKey) {
+    if (!apiKey || apiKey === '') {
+        genAI = null;
+        model = null;
+        currentApiKey = '';
+        return false;
+    }
+
+    try {
+        genAI = new GoogleGenerativeAI(apiKey);
+        model = genAI.getGenerativeModel({
+            model: process.env.GEMINI_MODEL || 'gemini-2.0-flash'
+        });
+        currentApiKey = apiKey;
+        return true;
+    } catch (error) {
+        console.error('Failed to initialize Gemini client:', error);
+        return false;
+    }
+}
+
+// Initialize with env variable if available
+if (currentApiKey) {
+    initializeClient(currentApiKey);
+}
+
+/**
+ * Get API key from database settings
+ */
+async function getApiKeyFromDatabase() {
+    try {
+        const { query } = await import('./database.js');
+        const results = await query(
+            "SELECT setting_value FROM settings WHERE setting_key = 'gemini_api_key' LIMIT 1"
+        );
+        if (results && results.length > 0) {
+            return results[0].setting_value;
+        }
+    } catch (error) {
+        // Database might not be connected yet
+    }
+    return null;
+}
+
+/**
+ * Ensure the client is configured, checking database if not
+ */
+async function ensureConfigured() {
+    // Already configured
+    if (genAI !== null && model !== null) {
+        return true;
+    }
+
+    // Try to get from database
+    const dbKey = await getApiKeyFromDatabase();
+    if (dbKey) {
+        return initializeClient(dbKey);
+    }
+
+    // Check if env was updated at runtime
+    if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== currentApiKey) {
+        return initializeClient(process.env.GEMINI_API_KEY);
+    }
+
+    return false;
 }
 
 /**
@@ -31,8 +94,11 @@ export function isConfigured() {
  * @returns {Promise<string>} Generated text
  */
 export async function generateContent(prompt, options = {}) {
+    // Try to ensure configured before checking
+    await ensureConfigured();
+
     if (!isConfigured()) {
-        throw new Error('Gemini AI is not configured. Please set GEMINI_API_KEY in your .env file.');
+        throw new Error('Gemini AI is not configured. Please add GEMINI_API_KEY to .env file or save it in Settings.');
     }
 
     try {

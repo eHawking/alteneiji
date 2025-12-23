@@ -15,10 +15,27 @@ const router = Router();
 router.get('/status',
     authenticate,
     asyncHandler(async (req, res) => {
+        // Check if configured via env
+        let configured = gemini.isConfigured();
+
+        // If not, check database for saved key
+        if (!configured) {
+            try {
+                const dbResults = await query(
+                    "SELECT setting_value FROM settings WHERE setting_key = 'gemini_api_key' LIMIT 1"
+                );
+                if (dbResults && dbResults.length > 0 && dbResults[0].setting_value) {
+                    configured = true;
+                }
+            } catch (err) {
+                // Database might not have this setting yet
+            }
+        }
+
         res.json({
             success: true,
             data: {
-                configured: gemini.isConfigured(),
+                configured: configured,
                 model: process.env.GEMINI_MODEL || 'gemini-2.0-flash'
             }
         });
