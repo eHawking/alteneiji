@@ -22,9 +22,9 @@ router.get('/status',
         if (!configured) {
             try {
                 const dbResults = await query(
-                    "SELECT setting_value FROM settings WHERE setting_key = 'gemini_api_key' LIMIT 1"
+                    "SELECT value FROM settings WHERE `key` = 'gemini_api_key' LIMIT 1"
                 );
-                if (dbResults && dbResults.length > 0 && dbResults[0].setting_value) {
+                if (dbResults && dbResults.length > 0 && dbResults[0].value) {
                     configured = true;
                 }
             } catch (err) {

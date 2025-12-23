@@ -45,10 +45,15 @@ async function getApiKeyFromDatabase() {
     try {
         const { query } = await import('./database.js');
         const results = await query(
-            "SELECT setting_value FROM settings WHERE setting_key = 'gemini_api_key' LIMIT 1"
+            "SELECT value FROM settings WHERE `key` = 'gemini_api_key' LIMIT 1"
         );
         if (results && results.length > 0) {
-            return results[0].setting_value;
+            // Value is stored as JSON string, parse it
+            let val = results[0].value;
+            try {
+                val = JSON.parse(val);
+            } catch (e) { }
+            return val;
         }
     } catch (error) {
         // Database might not be connected yet
