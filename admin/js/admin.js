@@ -1504,16 +1504,42 @@ window.toggleTool = toggleTool;
 // SAVED POSTS PAGE
 // =====================
 
+let allSavedPosts = [];
+
 async function loadSavedPosts() {
     const grid = document.getElementById('saved-posts-grid');
     if (!grid) return;
 
+    const searchTerm = document.getElementById('posts-search')?.value?.toLowerCase() || '';
+    const platformFilter = document.getElementById('posts-platform-filter')?.value || '';
+    const dateFilter = document.getElementById('posts-date-filter')?.value || '';
+
     try {
         const response = await apiRequest('/social/posts');
-        const posts = response.data || [];
+        allSavedPosts = response.data || [];
 
-        if (posts.length === 0) {
-            grid.innerHTML = '<p class="empty-state">No saved posts yet. Generate some posts first!</p>';
+        // Apply filters
+        let filtered = allSavedPosts;
+
+        if (searchTerm) {
+            filtered = filtered.filter(p => (p.content || '').toLowerCase().includes(searchTerm));
+        }
+        if (platformFilter) {
+            filtered = filtered.filter(p => p.platform === platformFilter);
+        }
+        if (dateFilter) {
+            const now = new Date();
+            filtered = filtered.filter(p => {
+                const d = new Date(p.created_at);
+                if (dateFilter === 'today') return d.toDateString() === now.toDateString();
+                if (dateFilter === 'week') return (now - d) < 7 * 24 * 60 * 60 * 1000;
+                if (dateFilter === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                return true;
+            });
+        }
+
+        if (filtered.length === 0) {
+            grid.innerHTML = '<p class="empty-state">No posts found. Generate some posts first!</p>';
             return;
         }
 
@@ -1524,24 +1550,38 @@ async function loadSavedPosts() {
             linkedin: 'fa-linkedin'
         };
 
-        grid.innerHTML = posts.map(post => `
-            <div class="social-post-card" data-platform="${post.platform}">
+        grid.innerHTML = filtered.map(post => `
+            <div class="social-post-card post-card-editable" data-post-id="${post.id}" data-platform="${post.platform}">
                 <div class="platform-header ${post.platform}">
                     <i class="fab ${platformIcons[post.platform] || 'fa-share-alt'}"></i>
                     <span>${(post.platform || 'unknown').charAt(0).toUpperCase() + (post.platform || '').slice(1)}</span>
                     <span class="post-date">${new Date(post.created_at).toLocaleDateString()}</span>
                 </div>
-                ${post.image_url ? `<div class="post-image"><img src="${post.image_url}" alt="" onerror="this.parentElement.remove()"></div>` : ''}
+                ${post.image_url ? `
+                    <div class="post-image">
+                        <img src="${post.image_url}" alt="" onerror="this.parentElement.remove()">
+                        <div class="post-image-overlay">
+                            <button class="regenerate-btn" onclick="regeneratePostImage(${post.id}, '${post.platform}')">
+                                <i class="fas fa-sync"></i> Regenerate
+                            </button>
+                        </div>
+                    </div>
+                ` : ''}
                 <div class="post-content">
-                    <div class="post-text">${post.content || ''}</div>
+                    <div class="post-text" contenteditable="true" data-post-id="${post.id}" 
+                         onblur="autoSavePost(${post.id}, this.innerText)">${post.content || ''}</div>
+                    <span class="post-save-status" id="save-status-${post.id}"></span>
                 </div>
-                <div class="post-actions">
+                <div class="post-actions-row">
                     <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('${encodeURIComponent(post.content || '')}')">
                         <i class="fas fa-copy"></i> Copy
                     </button>
-                    ${post.image_url ? `<button class="btn btn-primary btn-sm" onclick="window.open('${post.image_url}')">
-                        <i class="fas fa-download"></i> View
+                    ${post.image_url ? `<button class="btn btn-secondary btn-sm" onclick="downloadFile('${post.image_url}', 'post-${post.id}.png')">
+                        <i class="fas fa-download"></i> Image
                     </button>` : ''}
+                    <button class="btn btn-danger btn-sm" onclick="deletePost(${post.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             </div>
         `).join('');
@@ -1549,6 +1589,80 @@ async function loadSavedPosts() {
         grid.innerHTML = '<p class="empty-state">Failed to load posts</p>';
         console.error('Failed to load saved posts:', error);
     }
+}
+
+// Auto-save post content
+async function autoSavePost(postId, newContent) {
+    const statusEl = document.getElementById(`save-status-${postId}`);
+    if (statusEl) statusEl.textContent = 'Saving...';
+
+    try {
+        await apiRequest('/social/posts/' + postId, 'PUT', { content: newContent });
+        if (statusEl) statusEl.textContent = '✓ Saved';
+        setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 2000);
+    } catch (error) {
+        if (statusEl) statusEl.textContent = '✗ Failed';
+        console.error('Auto-save failed:', error);
+    }
+}
+
+// Regenerate post image
+async function regeneratePostImage(postId, platform) {
+    const customPrompt = prompt('Enter description for new image (or leave blank for same topic):');
+    if (customPrompt === null) return;
+
+    showToast('Regenerating image...', 'info');
+
+    try {
+        const response = await apiRequest('/ai/regenerate-image', 'POST', {
+            platform: platform,
+            prompt: customPrompt || 'social media post image',
+            postId: postId
+        });
+
+        if (response.success && response.imageUrl) {
+            // Update endpoint to save new image to post
+            await apiRequest('/social/posts/' + postId, 'PUT', { image_url: response.imageUrl });
+            showToast('Image regenerated!', 'success');
+            loadSavedPosts(); // Refresh
+        }
+    } catch (error) {
+        showToast('Failed to regenerate image', 'error');
+        console.error(error);
+    }
+}
+
+// Delete post
+async function deletePost(postId) {
+    if (!confirm('Delete this post?')) return;
+
+    try {
+        await apiRequest('/social/posts/' + postId, 'DELETE');
+        showToast('Post deleted', 'success');
+        loadSavedPosts();
+    } catch (error) {
+        showToast('Failed to delete', 'error');
+    }
+}
+
+// Add filter event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('posts-search');
+    const platformFilter = document.getElementById('posts-platform-filter');
+    const dateFilter = document.getElementById('posts-date-filter');
+
+    if (searchInput) searchInput.addEventListener('input', debounce(loadSavedPosts, 300));
+    if (platformFilter) platformFilter.addEventListener('change', loadSavedPosts);
+    if (dateFilter) dateFilter.addEventListener('change', loadSavedPosts);
+});
+
+// Debounce helper
+function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
 }
 
 function copyToClipboard(text) {
@@ -1612,3 +1726,15 @@ window.loadMediaLibrary = loadMediaLibrary;
 window.copyToClipboard = copyToClipboard;
 window.showImagePreview = showImagePreview;
 window.downloadFile = downloadFile;
+window.autoSavePost = autoSavePost;
+window.regeneratePostImage = regeneratePostImage;
+window.deletePost = deletePost;
+window.downloadAllMedia = function () {
+    showToast('Preparing download...', 'info');
+    // Simple implementation - open each in new tab
+    const images = document.querySelectorAll('#media-grid .media-item img');
+    images.forEach((img, i) => {
+        setTimeout(() => downloadFile(img.src, `image-${i + 1}.png`), i * 500);
+    });
+};
+
