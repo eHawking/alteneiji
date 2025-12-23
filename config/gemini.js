@@ -141,26 +141,28 @@ export async function generateImage(prompt) {
         // Try Imagen model first
         try {
             const imageModel = genAI.getGenerativeModel({
-                model: 'imagen-3.0-generate-002'
+                model: 'gemini-2.5-flash-image'
             });
 
-            const result = await imageModel.generateImages({
-                prompt: `Professional social media marketing image: ${prompt}. Modern, vibrant, premium business aesthetic. High quality.`,
-                config: {
-                    numberOfImages: 1,
-                    aspectRatio: '16:9'
+            const result = await imageModel.generateContent(
+                `Create a professional social media marketing image: ${prompt}. Modern, vibrant, premium business aesthetic.`
+            );
+
+            const response = await result.response;
+
+            if (response?.candidates?.[0]?.content?.parts) {
+                for (const part of response.candidates[0].content.parts) {
+                    if (part.inlineData) {
+                        console.log('Image generated with Nano Banana!');
+                        return {
+                            base64: part.inlineData.data,
+                            mimeType: part.inlineData.mimeType || 'image/png'
+                        };
+                    }
                 }
-            });
-
-            if (result?.generatedImages?.[0]) {
-                console.log('Image generated with Imagen');
-                return {
-                    base64: result.generatedImages[0].image.imageBytes,
-                    mimeType: 'image/png'
-                };
             }
-        } catch (imagenError) {
-            console.log('Imagen not available, trying Gemini Flash...');
+        } catch (nanoBananaError) {
+            console.log('Nano Banana failed, trying fallback...');
         }
 
         // Fallback to gemini-2.0-flash-exp
