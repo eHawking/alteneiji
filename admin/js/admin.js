@@ -1565,7 +1565,7 @@ async function loadMediaLibrary() {
     if (!grid) return;
 
     try {
-        const response = await apiRequest('/uploads/list?folder=social');
+        const response = await apiRequest('/admin/uploads/list?folder=social');
         const files = response.data || [];
 
         if (files.length === 0) {
