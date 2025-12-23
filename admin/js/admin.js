@@ -191,6 +191,12 @@ async function loadPageData(pageId) {
         case 'billing':
             await loadBillingData();
             break;
+        case 'saved-posts':
+            await loadSavedPosts();
+            break;
+        case 'media':
+            await loadMediaLibrary();
+            break;
     }
 }
 
@@ -1482,3 +1488,127 @@ window.speakPostContent = speakPostContent;
 window.showRegeneratePopup = showRegeneratePopup;
 window.closeRegenerateModal = closeRegenerateModal;
 window.regenerateImage = regenerateImage;
+
+// Toggle tool button active state
+function toggleTool(checkboxId, button) {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        button.classList.toggle('active', checkbox.checked);
+    }
+}
+
+window.toggleTool = toggleTool;
+
+// =====================
+// SAVED POSTS PAGE
+// =====================
+
+async function loadSavedPosts() {
+    const grid = document.getElementById('saved-posts-grid');
+    if (!grid) return;
+
+    try {
+        const response = await apiRequest('/social/posts');
+        const posts = response.data || [];
+
+        if (posts.length === 0) {
+            grid.innerHTML = '<p class="empty-state">No saved posts yet. Generate some posts first!</p>';
+            return;
+        }
+
+        const platformIcons = {
+            instagram: 'fa-instagram',
+            facebook: 'fa-facebook',
+            twitter: 'fa-x-twitter',
+            linkedin: 'fa-linkedin'
+        };
+
+        grid.innerHTML = posts.map(post => `
+            <div class="social-post-card" data-platform="${post.platform}">
+                <div class="platform-header ${post.platform}">
+                    <i class="fab ${platformIcons[post.platform] || 'fa-share-alt'}"></i>
+                    <span>${(post.platform || 'unknown').charAt(0).toUpperCase() + (post.platform || '').slice(1)}</span>
+                    <span class="post-date">${new Date(post.created_at).toLocaleDateString()}</span>
+                </div>
+                ${post.image_url ? `<div class="post-image"><img src="${post.image_url}" alt="" onerror="this.parentElement.remove()"></div>` : ''}
+                <div class="post-content">
+                    <div class="post-text">${post.content || ''}</div>
+                </div>
+                <div class="post-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('${encodeURIComponent(post.content || '')}')">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    ${post.image_url ? `<button class="btn btn-primary btn-sm" onclick="window.open('${post.image_url}')">
+                        <i class="fas fa-download"></i> View
+                    </button>` : ''}
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        grid.innerHTML = '<p class="empty-state">Failed to load posts</p>';
+        console.error('Failed to load saved posts:', error);
+    }
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(decodeURIComponent(text));
+    showToast('Copied to clipboard!', 'success');
+}
+
+// =====================
+// MEDIA LIBRARY PAGE
+// =====================
+
+async function loadMediaLibrary() {
+    const grid = document.getElementById('media-grid');
+    if (!grid) return;
+
+    try {
+        const response = await apiRequest('/uploads/list?folder=social');
+        const files = response.data || [];
+
+        if (files.length === 0) {
+            grid.innerHTML = '<p class="empty-state">No media files yet. Generate some posts with images first!</p>';
+            return;
+        }
+
+        grid.innerHTML = files.map(file => `
+            <div class="media-item">
+                <img src="${file.url}" alt="${file.name}" onclick="showImagePreview('${file.url}')">
+                <div class="media-overlay">
+                    <span class="media-name">${file.name}</span>
+                    <div class="media-actions">
+                        <button onclick="window.open('${file.url}')" title="View"><i class="fas fa-expand"></i></button>
+                        <button onclick="downloadFile('${file.url}', '${file.name}')" title="Download"><i class="fas fa-download"></i></button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        // Fallback: try to list from social folder directly
+        grid.innerHTML = '<p class="empty-state">Failed to load media. Check uploads/social folder.</p>';
+        console.error('Failed to load media:', error);
+    }
+}
+
+function showImagePreview(url) {
+    const modal = document.createElement('div');
+    modal.className = 'regenerate-modal';
+    modal.onclick = () => modal.remove();
+    modal.innerHTML = `<img src="${url}" style="max-width: 90%; max-height: 90%; border-radius: 12px;">`;
+    document.body.appendChild(modal);
+}
+
+function downloadFile(url, name) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name || 'download';
+    a.click();
+}
+
+window.loadSavedPosts = loadSavedPosts;
+window.loadMediaLibrary = loadMediaLibrary;
+window.copyToClipboard = copyToClipboard;
+window.showImagePreview = showImagePreview;
+window.downloadFile = downloadFile;

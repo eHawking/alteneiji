@@ -488,4 +488,37 @@ router.get('/billing/history',
     })
 );
 
+/**
+ * @route GET /api/uploads/list
+ * @desc List uploaded files for media library
+ */
+router.get('/uploads/list',
+    authenticate,
+    asyncHandler(async (req, res) => {
+        const fs = await import('fs');
+        const path = await import('path');
+
+        const folder = req.query.folder || 'social';
+        const uploadsDir = path.default.join(process.cwd(), 'uploads', folder);
+
+        if (!fs.default.existsSync(uploadsDir)) {
+            return res.json({ success: true, data: [] });
+        }
+
+        const files = fs.default.readdirSync(uploadsDir)
+            .filter(file => /\.(png|jpg|jpeg|gif|webp)$/i.test(file))
+            .map(file => ({
+                name: file,
+                url: `/uploads/${folder}/${file}`,
+                created: fs.default.statSync(path.default.join(uploadsDir, file)).mtime
+            }))
+            .sort((a, b) => new Date(b.created) - new Date(a.created));
+
+        res.json({
+            success: true,
+            data: files
+        });
+    })
+);
+
 export default router;

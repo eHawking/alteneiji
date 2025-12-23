@@ -90,6 +90,14 @@
                     <i class="fas fa-video"></i>
                     <span>Video Generator</span>
                 </a>
+                <a href="#saved-posts" class="nav-item" data-page="saved-posts">
+                    <i class="fas fa-bookmark"></i>
+                    <span>Saved Posts</span>
+                </a>
+                <a href="#media" class="nav-item" data-page="media">
+                    <i class="fas fa-images"></i>
+                    <span>Media Library</span>
+                </a>
 
                 <div class="nav-section">Management</div>
                 <a href="#contacts" class="nav-item" data-page="contacts">
@@ -270,123 +278,112 @@
 
                 <!-- AI Social Generator Page -->
                 <div id="page-ai-social" class="page">
-                    <div class="page-header premium-header">
-                        <div>
-                            <h3><i class="fas fa-sparkles"></i> AI Social Media Generator</h3>
-                            <p>Create stunning, platform-optimized content with AI-powered imagery</p>
+                    <!-- Composer Card -->
+                    <div class="composer-card">
+                        <!-- Composer Header -->
+                        <div class="composer-header">
+                            <div class="composer-title">
+                                <i class="fas fa-wand-magic-sparkles"></i>
+                                <span>Create Post</span>
+                            </div>
+                            <span class="badge-ai"><i class="fas fa-bolt"></i> AI Powered</span>
                         </div>
-                        <span class="badge badge-premium"><i class="fas fa-crown"></i> Premium</span>
-                    </div>
 
-                    <div class="card premium-card">
-                        <div class="card-body">
-                            <!-- Topic Input -->
-                            <div class="form-group">
-                                <label for="social-topic"><i class="fas fa-lightbulb"></i> Topic / Content to
-                                    Promote</label>
-                                <textarea id="social-topic" rows="3" class="premium-input"
-                                    placeholder="Describe what you want to promote... e.g., 'New organic spice collection arriving this week, featuring authentic Indian flavors'"></textarea>
+                        <!-- Main Input Area -->
+                        <div class="composer-input-area">
+                            <textarea id="social-topic" rows="4"
+                                placeholder="What would you like to promote today? Describe your product, event, or message..."></textarea>
+
+                            <!-- Attached Files Preview -->
+                            <div id="attached-files-row" class="attached-files-row hidden">
+                                <div id="attached-image-preview" class="file-chip hidden">
+                                    <img id="attached-image-src" src="" alt="">
+                                    <span>Custom Image</span>
+                                    <button onclick="removeAttachedImage()"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div id="logo-preview" class="file-chip hidden">
+                                    <img id="logo-src" src="" alt="">
+                                    <span>Logo</span>
+                                    <button onclick="removeLogo()"><i class="fas fa-times"></i></button>
+                                </div>
                             </div>
 
-                            <!-- Two Column Options -->
-                            <div class="form-row responsive-row">
-                                <div class="form-group">
-                                    <label for="social-tone"><i class="fas fa-comment-dots"></i> Tone</label>
-                                    <select id="social-tone" class="premium-input">
+                            <!-- Toolbar -->
+                            <div class="composer-toolbar">
+                                <div class="toolbar-left">
+                                    <!-- AI Images Toggle -->
+                                    <button class="tool-btn active" id="tool-ai-images"
+                                        onclick="toggleTool('generate-images', this)" title="Generate AI Images">
+                                        <i class="fas fa-image"></i>
+                                    </button>
+                                    <!-- Attach Image -->
+                                    <button class="tool-btn" id="tool-attach"
+                                        onclick="document.getElementById('attach-image-input').click()"
+                                        title="Attach Custom Image">
+                                        <i class="fas fa-paperclip"></i>
+                                    </button>
+                                    <input type="file" id="attach-image-input" accept="image/*" style="display:none"
+                                        onchange="handleImageAttach(this)">
+                                    <!-- Voice TTS -->
+                                    <button class="tool-btn" id="tool-voice" onclick="toggleTool('enable-voice', this)"
+                                        title="Enable Voice Readout">
+                                        <i class="fas fa-volume-up"></i>
+                                    </button>
+                                    <!-- Logo -->
+                                    <button class="tool-btn" id="tool-logo"
+                                        onclick="document.getElementById('logo-input').click()"
+                                        title="Add Logo Branding">
+                                        <i class="fas fa-crown"></i>
+                                    </button>
+                                    <input type="file" id="logo-input" accept="image/*" style="display:none"
+                                        onchange="handleLogoUpload(this)">
+
+                                    <div class="toolbar-divider"></div>
+
+                                    <!-- Tone Selector -->
+                                    <select id="social-tone" class="tone-select" title="Tone">
                                         <option value="professional">🎯 Professional</option>
                                         <option value="casual">😊 Casual</option>
                                         <option value="enthusiastic">🔥 Enthusiastic</option>
                                         <option value="formal">📋 Formal</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label><i class="fab fa-instagram"></i> Platforms</label>
-                                    <div class="checkbox-group platform-pills">
-                                        <label class="platform-pill instagram">
-                                            <input type="checkbox" name="platform" value="instagram" checked>
-                                            <i class="fab fa-instagram"></i> Instagram
-                                        </label>
-                                        <label class="platform-pill facebook">
-                                            <input type="checkbox" name="platform" value="facebook" checked>
-                                            <i class="fab fa-facebook"></i> Facebook
-                                        </label>
-                                        <label class="platform-pill twitter">
-                                            <input type="checkbox" name="platform" value="twitter" checked>
-                                            <i class="fab fa-x-twitter"></i> X
-                                        </label>
-                                        <label class="platform-pill linkedin">
-                                            <input type="checkbox" name="platform" value="linkedin" checked>
-                                            <i class="fab fa-linkedin"></i> LinkedIn
-                                        </label>
-                                    </div>
-                                </div>
+
+                                <!-- Hidden Checkboxes -->
+                                <input type="checkbox" id="generate-images" checked style="display:none">
+                                <input type="checkbox" id="enable-voice" style="display:none">
+                                <input type="checkbox" id="attach-custom-image" style="display:none">
+                                <input type="checkbox" id="add-logo" style="display:none">
                             </div>
+                        </div>
 
-                            <!-- Advanced Options -->
-                            <div class="advanced-options-panel">
-                                <h4><i class="fas fa-sliders-h"></i> Advanced Options</h4>
-                                <div class="options-grid">
-                                    <!-- Generate Images -->
-                                    <label class="option-card">
-                                        <input type="checkbox" id="generate-images" checked>
-                                        <div class="option-content">
-                                            <i class="fas fa-image"></i>
-                                            <span>AI Images</span>
-                                        </div>
-                                    </label>
-                                    <!-- Attach Custom Image -->
-                                    <label class="option-card"
-                                        onclick="document.getElementById('attach-image-input').click()">
-                                        <input type="checkbox" id="attach-custom-image">
-                                        <div class="option-content">
-                                            <i class="fas fa-paperclip"></i>
-                                            <span>Attach Image</span>
-                                        </div>
-                                    </label>
-                                    <input type="file" id="attach-image-input" accept="image/*" style="display:none"
-                                        onchange="handleImageAttach(this)">
-                                    <!-- Voice/TTS -->
-                                    <label class="option-card">
-                                        <input type="checkbox" id="enable-voice">
-                                        <div class="option-content">
-                                            <i class="fas fa-volume-up"></i>
-                                            <span>Voice TTS</span>
-                                        </div>
-                                    </label>
-                                    <!-- Logo Branding -->
-                                    <label class="option-card" onclick="document.getElementById('logo-input').click()">
-                                        <input type="checkbox" id="add-logo">
-                                        <div class="option-content">
-                                            <i class="fas fa-stamp"></i>
-                                            <span>Add Logo</span>
-                                        </div>
-                                    </label>
-                                    <input type="file" id="logo-input" accept="image/*" style="display:none"
-                                        onchange="handleLogoUpload(this)">
-                                </div>
-
-                                <!-- Attached Image Preview -->
-                                <div id="attached-image-preview" class="attached-preview hidden">
-                                    <img id="attached-image-src" src="" alt="Attached">
-                                    <button class="btn btn-sm" onclick="removeAttachedImage()"><i
-                                            class="fas fa-times"></i></button>
-                                </div>
-
-                                <!-- Logo Preview -->
-                                <div id="logo-preview" class="logo-preview hidden">
-                                    <img id="logo-src" src="" alt="Logo">
-                                    <span>Logo will be added to all images</span>
-                                    <button class="btn btn-sm" onclick="removeLogo()"><i
-                                            class="fas fa-times"></i></button>
-                                </div>
+                        <!-- Platform Selection -->
+                        <div class="platform-row">
+                            <span class="platform-label">Post to:</span>
+                            <div class="platform-toggles">
+                                <label class="platform-toggle instagram">
+                                    <input type="checkbox" name="platform" value="instagram" checked>
+                                    <i class="fab fa-instagram"></i>
+                                </label>
+                                <label class="platform-toggle facebook">
+                                    <input type="checkbox" name="platform" value="facebook" checked>
+                                    <i class="fab fa-facebook-f"></i>
+                                </label>
+                                <label class="platform-toggle twitter">
+                                    <input type="checkbox" name="platform" value="twitter" checked>
+                                    <i class="fab fa-x-twitter"></i>
+                                </label>
+                                <label class="platform-toggle linkedin">
+                                    <input type="checkbox" name="platform" value="linkedin" checked>
+                                    <i class="fab fa-linkedin-in"></i>
+                                </label>
                             </div>
 
                             <!-- Generate Button -->
-                            <div class="generate-actions">
-                                <button id="generate-social-btn" class="btn btn-primary btn-lg generate-btn">
-                                    <i class="fas fa-wand-magic-sparkles"></i> Generate Posts
-                                </button>
-                            </div>
+                            <button id="generate-social-btn" class="generate-btn-new">
+                                <i class="fas fa-sparkles"></i>
+                                <span>Generate</span>
+                            </button>
                         </div>
                     </div>
 
@@ -906,6 +903,28 @@
                     </div>
                 </div>
 
+                <!-- Saved Posts Page -->
+                <div id="page-saved-posts" class="page">
+                    <div class="page-header">
+                        <h3><i class="fas fa-bookmark"></i> Saved Posts</h3>
+                        <p>All your AI-generated social media posts</p>
+                    </div>
+                    <div id="saved-posts-grid" class="social-posts-grid">
+                        <p class="empty-state">Loading saved posts...</p>
+                    </div>
+                </div>
+
+                <!-- Media Library Page -->
+                <div id="page-media" class="page">
+                    <div class="page-header">
+                        <h3><i class="fas fa-images"></i> Media Library</h3>
+                        <p>All generated images</p>
+                    </div>
+                    <div id="media-grid" class="media-grid">
+                        <p class="empty-state">Loading media...</p>
+                    </div>
+                </div>
+
                 <!-- Billing & Usage Page -->
                 <div id="page-billing" class="page">
                     <div class="page-header">
@@ -953,7 +972,7 @@
                             </div>
                             <div class="stat-content">
                                 <span class="stat-value" id="total-billed">$0.00</span>
-                                <span class="stat-label">Total (with 50% markup)</span>
+                                <span class="stat-label">Total Billed</span>
                             </div>
                         </div>
                     </div>
