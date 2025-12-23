@@ -166,14 +166,15 @@ router.post('/seo/analyze',
 
 /**
  * @route POST /api/ai/social/generate
- * @desc Generate social media posts
+ * @desc Generate social media posts with optional images
  */
 router.post('/social/generate',
     authenticate,
     [
         body('topic').notEmpty().withMessage('Topic is required'),
         body('platforms').optional().isArray(),
-        body('tone').optional().isIn(['professional', 'casual', 'enthusiastic', 'formal'])
+        body('tone').optional().isIn(['professional', 'casual', 'enthusiastic', 'formal']),
+        body('generateImages').optional().isBoolean()
     ],
     asyncHandler(async (req, res) => {
         if (!gemini.isConfigured()) {
@@ -188,14 +189,51 @@ router.post('/social/generate',
             });
         }
 
-        const { topic, platforms, tone = 'professional', includeHashtags = true } = req.body;
+        const { topic, platforms, tone = 'professional', includeHashtags = true, generateImages = true } = req.body;
+        const fs = await import('fs');
+        const path = await import('path');
 
+        // Generate text posts
         const posts = await gemini.generateSocialPost({
             topic,
             platforms: platforms || ['instagram', 'facebook', 'twitter', 'linkedin', 'youtube'],
             tone,
             includeHashtags
         });
+
+        // Generate images for each platform if requested
+        if (generateImages) {
+            for (const [platform, data] of Object.entries(posts)) {
+                if (data && data.content) {
+                    try {
+                        const imageResult = await gemini.generateImage(
+                            `${topic} - for ${platform} social media post`
+                        );
+
+                        if (imageResult && imageResult.base64) {
+                            // Save image to uploads folder
+                            const timestamp = Date.now();
+                            const filename = `social-${platform}-${timestamp}.png`;
+                            const uploadsDir = path.default.join(process.cwd(), 'uploads', 'social');
+
+                            // Create directory if not exists
+                            if (!fs.default.existsSync(uploadsDir)) {
+                                fs.default.mkdirSync(uploadsDir, { recursive: true });
+                            }
+
+                            const filePath = path.default.join(uploadsDir, filename);
+                            fs.default.writeFileSync(filePath, Buffer.from(imageResult.base64, 'base64'));
+
+                            // Add image URL to post data
+                            posts[platform].imageUrl = `/uploads/social/${filename}`;
+                        }
+                    } catch (imgError) {
+                        console.error(`Failed to generate image for ${platform}:`, imgError);
+                        // Continue without image
+                    }
+                }
+            }
+        }
 
         res.json({
             success: true,

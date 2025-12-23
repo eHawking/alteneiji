@@ -123,6 +123,58 @@ export async function generateContent(prompt, options = {}) {
 }
 
 /**
+ * Generate an image using Gemini's image generation model
+ * @param {string} prompt - Description of the image to generate
+ * @returns {Promise<string>} Base64 encoded image or URL
+ */
+export async function generateImage(prompt) {
+    await ensureConfigured();
+
+    if (!genAI) {
+        throw new Error('Gemini AI is not configured');
+    }
+
+    try {
+        // Use the image generation model
+        const imageModel = genAI.getGenerativeModel({
+            model: 'gemini-2.0-flash-exp',
+            generationConfig: {
+                responseModalities: ['Text', 'Image']
+            }
+        });
+
+        const result = await imageModel.generateContent({
+            contents: [{
+                role: 'user',
+                parts: [{
+                    text: `Generate a professional social media marketing image for: ${prompt}. 
+                           The image should be vibrant, modern, and suitable for business marketing. 
+                           Style: Premium, clean, corporate but engaging.`
+                }]
+            }]
+        });
+
+        const response = await result.response;
+
+        // Check if image was generated
+        for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+                return {
+                    base64: part.inlineData.data,
+                    mimeType: part.inlineData.mimeType
+                };
+            }
+        }
+
+        return null;
+    } catch (error) {
+        console.error('Gemini image generation error:', error);
+        // Return null instead of throwing to allow fallback
+        return null;
+    }
+}
+
+/**
  * Generate SEO metadata for content
  * @param {string} content - The content to analyze
  * @param {string} contentType - Type of content (page, product, blog)
@@ -354,6 +406,7 @@ Return ONLY valid JSON, no markdown or additional text.`;
 export default {
     isConfigured,
     generateContent,
+    generateImage,
     generateSEO,
     generateSocialPost,
     generateMarketingCampaign,
