@@ -1419,3 +1419,295 @@ body {
     padding: 30px;
     font-style: italic;
 }
+
+/* ===================== */
+/* PREMIUM SOCIAL GENERATOR */
+/* ===================== */
+
+.premium-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.badge-premium {
+    background: linear-gradient(135deg, #f1c40f, #e67e22);
+    color: #000;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.premium-card {
+    background: linear-gradient(145deg, var(--bg-secondary), var(--bg-tertiary));
+    border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.premium-input {
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.premium-input:focus {
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+}
+
+/* Platform Pills */
+.platform-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.platform-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    font-size: 13px;
+}
+
+.platform-pill input {
+    display: none;
+}
+
+.platform-pill.instagram {
+    background: rgba(225, 48, 108, 0.15);
+    color: #E1306C;
+}
+
+.platform-pill.facebook {
+    background: rgba(24, 119, 242, 0.15);
+    color: #1877F2;
+}
+
+.platform-pill.twitter {
+    background: rgba(29, 161, 242, 0.15);
+    color: #1DA1F2;
+}
+
+.platform-pill.linkedin {
+    background: rgba(10, 102, 194, 0.15);
+    color: #0A66C2;
+}
+
+.platform-pill:has(input:checked) {
+    border-color: currentColor;
+    box-shadow: 0 0 10px currentColor;
+}
+
+/* Advanced Options Panel */
+.advanced-options-panel {
+    margin-top: 20px;
+    padding: 20px;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.advanced-options-panel h4 {
+    margin-bottom: 15px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 12px;
+}
+
+.option-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.option-card input {
+    display: none;
+}
+
+.option-card:has(input:checked) {
+    border-color: var(--accent-gold);
+    background: rgba(212, 175, 55, 0.1);
+}
+
+.option-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-gold);
+}
+
+.option-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.option-content i {
+    font-size: 24px;
+    color: var(--accent-gold);
+}
+
+.option-content span {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* Attached Image & Logo Preview */
+.attached-preview,
+.logo-preview {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 15px;
+    padding: 10px 15px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px dashed var(--border-color);
+}
+
+.attached-preview img,
+.logo-preview img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.logo-preview span {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* Generate Button */
+.generate-actions {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.generate-btn {
+    padding: 15px 40px;
+    font-size: 16px;
+    background: linear-gradient(135deg, var(--accent-gold), #e6a832);
+    border: none;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+}
+
+.generate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+}
+
+/* Responsive */
+.responsive-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .responsive-row {
+        grid-template-columns: 1fr;
+    }
+
+    .platform-pills {
+        flex-wrap: wrap;
+    }
+
+    .options-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .premium-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+/* Regenerate Image Popup */
+.regenerate-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.regenerate-modal-content {
+    background: var(--bg-secondary);
+    padding: 30px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    border: 1px solid var(--border-color);
+}
+
+.regenerate-modal h3 {
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.regenerate-modal textarea {
+    width: 100%;
+    min-height: 100px;
+    margin-bottom: 15px;
+}
+
+.regenerate-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* Post Card Regenerate Button */
+.post-image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.post-image:hover .post-image-overlay {
+    opacity: 1;
+}
+
+.regenerate-btn {
+    background: var(--accent-gold);
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.post-image {
+    position: relative;
+}

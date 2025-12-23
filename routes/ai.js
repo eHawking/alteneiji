@@ -321,6 +321,67 @@ router.post('/social/generate-single',
 );
 
 /**
+ * @route POST /api/ai/regenerate-image
+ * @desc Regenerate image for a specific platform with custom prompt
+ */
+router.post('/regenerate-image',
+    authenticate,
+    [
+        body('platform').notEmpty().withMessage('Platform is required'),
+        body('prompt').optional()
+    ],
+    asyncHandler(async (req, res) => {
+        if (!gemini.isConfigured()) {
+            throw new AppError('AI service not configured', 503);
+        }
+
+        const { platform, prompt } = req.body;
+        const fs = await import('fs');
+        const path = await import('path');
+
+        console.log(`Regenerating image for ${platform}:`, prompt?.substring(0, 50));
+
+        try {
+            const imageResult = await gemini.generateImage(
+                `${prompt || 'professional marketing image'} - ${platform} social media`
+            );
+
+            if (imageResult && imageResult.base64) {
+                const timestamp = Date.now();
+                const filename = `social-${platform}-regen-${timestamp}.png`;
+                const uploadsDir = path.default.join(process.cwd(), 'uploads', 'social');
+
+                if (!fs.default.existsSync(uploadsDir)) {
+                    fs.default.mkdirSync(uploadsDir, { recursive: true });
+                }
+
+                const filePath = path.default.join(uploadsDir, filename);
+                fs.default.writeFileSync(filePath, Buffer.from(imageResult.base64, 'base64'));
+
+                // Track usage
+                await gemini.trackUsage({
+                    userId: req.user?.id,
+                    operation: 'image_regeneration',
+                    model: 'gemini-2.5-flash-image',
+                    imagesGenerated: 1,
+                    summary: `Regenerated ${platform}: ${prompt?.substring(0, 30) || 'auto'}`
+                });
+
+                res.json({
+                    success: true,
+                    data: { imageUrl: `/uploads/social/${filename}` }
+                });
+            } else {
+                throw new AppError('Image generation returned no data', 500);
+            }
+        } catch (error) {
+            console.error('Image regeneration failed:', error.message);
+            throw new AppError('Failed to regenerate image: ' + error.message, 500);
+        }
+    })
+);
+
+/**
  * @route POST /api/ai/marketing/campaign
  * @desc Generate marketing campaign ideas
  */

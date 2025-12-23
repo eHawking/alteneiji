@@ -405,13 +405,22 @@ async function generateSocialPosts() {
 
             // Update card with actual content
             card.classList.remove('generating');
+            const enableVoice = document.getElementById('enable-voice')?.checked;
             card.innerHTML = `
                 <div class="platform-header ${platform}">
                     <i class="fab ${platformIcons[platform] || 'fa-share-alt'}"></i>
                     <span>${platform.charAt(0).toUpperCase() + platform.slice(1)}</span>
                     <span class="badge badge-published" style="margin-left: auto;">✓ Done</span>
                 </div>
-                ${data.imageUrl ? `<div class="post-image"><img src="${data.imageUrl}" alt="${platform} post" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image\\'></i>'"></div>` : ''}
+                ${data.imageUrl ? `
+                    <div class="post-image">
+                        <img src="${data.imageUrl}" alt="${platform} post" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image\\'></i>'">
+                        <div class="post-image-overlay">
+                            <button class="regenerate-btn" onclick="showRegeneratePopup('${platform}', '${data.imageUrl}')">
+                                <i class="fas fa-sync-alt"></i> Regenerate
+                            </button>
+                        </div>
+                    </div>` : ''}
                 <div class="post-content">
                     <div class="post-text">${data.content || 'Content generated'}</div>
                     <div class="hashtags">
@@ -422,6 +431,9 @@ async function generateSocialPosts() {
                     <button class="btn btn-secondary btn-sm" onclick="copyPostContent('${platform}', this)">
                         <i class="fas fa-copy"></i> Copy
                     </button>
+                    ${enableVoice ? `<button class="btn btn-secondary btn-sm" onclick="speakPostContent(\`${(data.content || '').replace(/`/g, "'")}\`)">
+                        <i class="fas fa-volume-up"></i>
+                    </button>` : ''}
                     ${data.imageUrl ? `<button class="btn btn-primary btn-sm" onclick="downloadPostImage('${platform}', this)">
                         <i class="fas fa-download"></i> Download
                     </button>` : ''}
@@ -1330,3 +1342,143 @@ document.addEventListener('DOMContentLoaded', () => {
         periodSelect.addEventListener('change', loadBillingData);
     }
 });
+
+// =====================
+// SOCIAL GENERATOR ADVANCED FEATURES
+// =====================
+
+// Store attached image and logo as base64
+let attachedImageData = null;
+let logoImageData = null;
+
+function handleImageAttach(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            attachedImageData = e.target.result;
+            document.getElementById('attached-image-src').src = attachedImageData;
+            document.getElementById('attached-image-preview').classList.remove('hidden');
+            document.getElementById('attach-custom-image').checked = true;
+            // Disable AI image generation when custom image is attached
+            document.getElementById('generate-images').checked = false;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function removeAttachedImage() {
+    attachedImageData = null;
+    document.getElementById('attached-image-preview').classList.add('hidden');
+    document.getElementById('attach-custom-image').checked = false;
+    document.getElementById('generate-images').checked = true;
+}
+
+function handleLogoUpload(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            logoImageData = e.target.result;
+            document.getElementById('logo-src').src = logoImageData;
+            document.getElementById('logo-preview').classList.remove('hidden');
+            document.getElementById('add-logo').checked = true;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function removeLogo() {
+    logoImageData = null;
+    document.getElementById('logo-preview').classList.add('hidden');
+    document.getElementById('add-logo').checked = false;
+}
+
+// Voice TTS for post content
+function speakPostContent(text) {
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        window.speechSynthesis.speak(utterance);
+        showToast('Playing audio...', 'info');
+    } else {
+        showToast('Voice not supported in this browser', 'error');
+    }
+}
+
+// Regenerate Image Popup
+function showRegeneratePopup(platform, currentImageUrl) {
+    const modal = document.createElement('div');
+    modal.className = 'regenerate-modal';
+    modal.id = 'regenerate-modal';
+    modal.innerHTML = `
+        <div class="regenerate-modal-content">
+            <h3><i class="fas fa-sync-alt"></i> Regenerate Image for ${platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>
+            <div class="form-group">
+                <label>Current Image:</label>
+                <img src="${currentImageUrl}" style="width: 100%; border-radius: 8px; margin-bottom: 15px;">
+            </div>
+            <div class="form-group">
+                <label>Custom Prompt (optional):</label>
+                <textarea id="regenerate-prompt" placeholder="Describe the image you want... Leave empty for a new variation"></textarea>
+            </div>
+            <div class="regenerate-modal-actions">
+                <button class="btn btn-secondary" onclick="closeRegenerateModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="regenerateImage('${platform}')">
+                    <i class="fas fa-magic"></i> Regenerate
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function closeRegenerateModal() {
+    const modal = document.getElementById('regenerate-modal');
+    if (modal) modal.remove();
+}
+
+async function regenerateImage(platform) {
+    const customPrompt = document.getElementById('regenerate-prompt')?.value || '';
+    const topic = document.getElementById('social-topic')?.value || 'professional marketing';
+
+    closeRegenerateModal();
+    showToast('Regenerating image...', 'info');
+
+    try {
+        const response = await apiRequest('/ai/regenerate-image', {
+            method: 'POST',
+            body: JSON.stringify({
+                platform,
+                prompt: customPrompt || topic
+            })
+        });
+
+        if (response.data && response.data.imageUrl) {
+            // Update the image in the post card
+            const card = document.getElementById(`post-card-${platform}`);
+            if (card) {
+                const img = card.querySelector('.post-image img');
+                if (img) {
+                    img.src = response.data.imageUrl;
+                }
+            }
+            showToast('Image regenerated!', 'success');
+        } else {
+            showToast('Failed to regenerate image', 'error');
+        }
+    } catch (error) {
+        showToast(error.message || 'Image regeneration failed', 'error');
+    }
+}
+
+// Make new functions globally available
+window.handleImageAttach = handleImageAttach;
+window.removeAttachedImage = removeAttachedImage;
+window.handleLogoUpload = handleLogoUpload;
+window.removeLogo = removeLogo;
+window.speakPostContent = speakPostContent;
+window.showRegeneratePopup = showRegeneratePopup;
+window.closeRegenerateModal = closeRegenerateModal;
+window.regenerateImage = regenerateImage;
