@@ -905,71 +905,96 @@
 
                 <!-- Saved Posts Page -->
                 <div id="page-saved-posts" class="page">
-                    <div class="page-header">
-                        <h3><i class="fas fa-bookmark"></i> Saved Posts</h3>
+                    <div class="premium-page-header">
+                        <div class="header-content">
+                            <div class="header-icon"><i class="fas fa-bookmark"></i></div>
+                            <div>
+                                <h2>Saved Posts</h2>
+                                <p>Your AI-generated social media content library</p>
+                            </div>
+                        </div>
+                        <div class="header-stats">
+                            <div class="stat-badge"><span id="posts-count">0</span> Posts</div>
+                        </div>
                     </div>
 
-                    <!-- Filter Bar -->
-                    <div class="filter-bar">
-                        <div class="filter-group">
-                            <input type="text" id="posts-search" class="filter-input" placeholder="Search posts...">
-                        </div>
-                        <div class="filter-group">
-                            <select id="posts-platform-filter" class="filter-select">
-                                <option value="">All Platforms</option>
-                                <option value="instagram">Instagram</option>
-                                <option value="facebook">Facebook</option>
-                                <option value="twitter">X (Twitter)</option>
-                                <option value="linkedin">LinkedIn</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <select id="posts-date-filter" class="filter-select">
+                    <!-- Filter Card -->
+                    <div class="premium-filter-card">
+                        <div class="filter-row">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="posts-search" placeholder="Search posts...">
+                            </div>
+                            <div class="filter-pills">
+                                <button class="filter-pill active" data-platform="">All</button>
+                                <button class="filter-pill" data-platform="instagram"><i
+                                        class="fab fa-instagram"></i></button>
+                                <button class="filter-pill" data-platform="facebook"><i
+                                        class="fab fa-facebook-f"></i></button>
+                                <button class="filter-pill" data-platform="twitter"><i
+                                        class="fab fa-x-twitter"></i></button>
+                                <button class="filter-pill" data-platform="linkedin"><i
+                                        class="fab fa-linkedin-in"></i></button>
+                            </div>
+                            <select id="posts-date-filter" class="premium-select">
                                 <option value="">All Time</option>
                                 <option value="today">Today</option>
                                 <option value="week">This Week</option>
                                 <option value="month">This Month</option>
                             </select>
                         </div>
-                        <button class="btn btn-secondary" onclick="loadSavedPosts()">
-                            <i class="fas fa-sync"></i>
-                        </button>
                     </div>
 
-                    <div id="saved-posts-grid" class="social-posts-grid">
-                        <p class="empty-state">Loading saved posts...</p>
+                    <!-- Hidden select for backwards compatibility -->
+                    <select id="posts-platform-filter" style="display:none"></select>
+
+                    <div id="saved-posts-grid" class="saved-posts-grid">
+                        <p class="empty-state"><i class="fas fa-inbox"></i><br>No posts yet</p>
                     </div>
                 </div>
 
                 <!-- Media Library Page -->
                 <div id="page-media" class="page">
-                    <div class="page-header">
-                        <h3><i class="fas fa-images"></i> Media Library</h3>
+                    <div class="premium-page-header media-header">
+                        <div class="header-content">
+                            <div class="header-icon"><i class="fas fa-images"></i></div>
+                            <div>
+                                <h2>Media Library</h2>
+                                <p>Your generated images collection</p>
+                            </div>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn-premium-outline" onclick="loadMediaLibrary()">
+                                <i class="fas fa-sync"></i> Refresh
+                            </button>
+                            <button class="btn-premium" onclick="downloadAllMedia()">
+                                <i class="fas fa-download"></i> Download All
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Filter Bar -->
-                    <div class="filter-bar">
-                        <div class="filter-group">
-                            <input type="text" id="media-search" class="filter-input"
-                                placeholder="Search by filename...">
-                        </div>
-                        <div class="filter-group">
-                            <select id="media-sort" class="filter-select">
+                    <!-- Filter Card -->
+                    <div class="premium-filter-card">
+                        <div class="filter-row">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="media-search" placeholder="Search files...">
+                            </div>
+                            <div class="view-toggle">
+                                <button class="view-btn active" data-view="grid"><i
+                                        class="fas fa-th-large"></i></button>
+                                <button class="view-btn" data-view="list"><i class="fas fa-list"></i></button>
+                            </div>
+                            <select id="media-sort" class="premium-select">
                                 <option value="newest">Newest First</option>
                                 <option value="oldest">Oldest First</option>
                                 <option value="name">By Name</option>
                             </select>
                         </div>
-                        <button class="btn btn-secondary" onclick="loadMediaLibrary()">
-                            <i class="fas fa-sync"></i>
-                        </button>
-                        <button class="btn btn-primary" onclick="downloadAllMedia()">
-                            <i class="fas fa-download"></i> Download All
-                        </button>
                     </div>
 
-                    <div id="media-grid" class="media-grid">
-                        <p class="empty-state">Loading media...</p>
+                    <div id="media-grid" class="media-library-grid">
+                        <p class="empty-state"><i class="fas fa-photo-video"></i><br>No media yet</p>
                     </div>
                 </div>
 

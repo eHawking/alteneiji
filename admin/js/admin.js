@@ -1654,6 +1654,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchInput) searchInput.addEventListener('input', debounce(loadSavedPosts, 300));
     if (platformFilter) platformFilter.addEventListener('change', loadSavedPosts);
     if (dateFilter) dateFilter.addEventListener('change', loadSavedPosts);
+
+    // Filter pill click handlers
+    document.querySelectorAll('.filter-pill[data-platform]').forEach(pill => {
+        pill.addEventListener('click', () => {
+            document.querySelectorAll('.filter-pill[data-platform]').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            // Update hidden select for backwards compatibility
+            const platformSelect = document.getElementById('posts-platform-filter');
+            if (platformSelect) platformSelect.value = pill.dataset.platform;
+            loadSavedPosts();
+        });
+    });
+
+    // View toggle for media library
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const grid = document.getElementById('media-grid');
+            if (grid) {
+                grid.classList.toggle('list-view', btn.dataset.view === 'list');
+            }
+        });
+    });
 });
 
 // Debounce helper
