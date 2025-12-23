@@ -434,6 +434,109 @@ Return ONLY valid JSON, no markdown or additional text.`;
     }
 }
 
+// Gemini API Pricing (per 1M tokens/image)
+const PRICING = {
+    'gemini-2.0-flash': { input: 0.10, output: 0.40 },
+    'gemini-2.5-flash': { input: 0.15, output: 0.60 },
+    'gemini-2.5-flash-image': { input: 0.15, output: 0.60, image: 0.04 },
+    'gemini-pro': { input: 0.50, output: 1.50 },
+    default: { input: 0.15, output: 0.60, image: 0.04 }
+};
+
+/**
+ * Track API usage for billing
+ * @param {Object} usage - Usage data
+ */
+export async function trackUsage(usage) {
+    try {
+        const { query } = await import('./database.js');
+
+        const modelPricing = PRICING[usage.model] || PRICING.default;
+        const inputCost = (usage.inputTokens || 0) / 1000000 * modelPricing.input;
+        const outputCost = (usage.outputTokens || 0) / 1000000 * modelPricing.output;
+        const imageCost = (usage.imagesGenerated || 0) * (modelPricing.image || 0.04);
+
+        const baseCost = inputCost + outputCost + imageCost;
+        const markupPercent = 50;
+        const totalCost = baseCost * (1 + markupPercent / 100);
+
+        await query(
+            `INSERT INTO api_usage (user_id, service, operation, model, input_tokens, output_tokens, 
+             images_generated, base_cost, markup_percent, total_cost, response_summary) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                usage.userId || null,
+                'gemini',
+                usage.operation || 'generate',
+                usage.model || 'gemini-2.5-flash',
+                usage.inputTokens || 0,
+                usage.outputTokens || 0,
+                usage.imagesGenerated || 0,
+                baseCost,
+                markupPercent,
+                totalCost,
+                usage.summary || null
+            ]
+        );
+
+        return { baseCost, totalCost, markupPercent };
+    } catch (error) {
+        console.error('Failed to track usage:', error.message);
+        return null;
+    }
+}
+
+/**
+ * Get usage statistics
+ */
+export async function getUsageStats(period = 'month') {
+    try {
+        const { query } = await import('./database.js');
+
+        let dateFilter = '';
+        if (period === 'today') {
+            dateFilter = "WHERE DATE(created_at) = CURDATE()";
+        } else if (period === 'week') {
+            dateFilter = "WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+        } else if (period === 'month') {
+            dateFilter = "WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+        }
+
+        const stats = await query(`
+            SELECT 
+                COUNT(*) as total_requests,
+                COALESCE(SUM(input_tokens), 0) as total_input_tokens,
+                COALESCE(SUM(output_tokens), 0) as total_output_tokens,
+                COALESCE(SUM(images_generated), 0) as total_images,
+                COALESCE(SUM(base_cost), 0) as total_base_cost,
+                COALESCE(SUM(total_cost), 0) as total_billed
+            FROM api_usage ${dateFilter}
+        `);
+
+        const recent = await query(`
+            SELECT operation, model, total_cost, created_at 
+            FROM api_usage 
+            ORDER BY created_at DESC 
+            LIMIT 10
+        `);
+
+        const byOperation = await query(`
+            SELECT operation, COUNT(*) as count, SUM(total_cost) as cost
+            FROM api_usage ${dateFilter}
+            GROUP BY operation
+        `);
+
+        return {
+            summary: stats[0],
+            recent: recent,
+            byOperation: byOperation
+        };
+    } catch (error) {
+        console.error('Failed to get usage stats:', error.message);
+        return { summary: {}, recent: [], byOperation: [] };
+    }
+}
+
 export default {
     isConfigured,
     generateContent,
@@ -441,5 +544,7 @@ export default {
     generateSEO,
     generateSocialPost,
     generateMarketingCampaign,
-    analyzeContent
+    analyzeContent,
+    trackUsage,
+    getUsageStats
 };

@@ -421,4 +421,71 @@ router.put('/gulfood/:id/status',
     })
 );
 
+// =====================
+// BILLING & USAGE
+// =====================
+
+/**
+ * @route GET /api/admin/billing
+ * @desc Get billing and usage statistics
+ */
+router.get('/billing',
+    authenticate,
+    asyncHandler(async (req, res) => {
+        const gemini = await import('../config/gemini.js');
+        const period = req.query.period || 'month';
+
+        const stats = await gemini.getUsageStats(period);
+
+        res.json({
+            success: true,
+            data: {
+                period,
+                summary: {
+                    totalRequests: parseInt(stats.summary?.total_requests) || 0,
+                    totalInputTokens: parseInt(stats.summary?.total_input_tokens) || 0,
+                    totalOutputTokens: parseInt(stats.summary?.total_output_tokens) || 0,
+                    totalImages: parseInt(stats.summary?.total_images) || 0,
+                    baseCost: parseFloat(stats.summary?.total_base_cost) || 0,
+                    totalBilled: parseFloat(stats.summary?.total_billed) || 0,
+                    markupPercent: 50
+                },
+                recentActivity: stats.recent || [],
+                byOperation: stats.byOperation || []
+            }
+        });
+    })
+);
+
+/**
+ * @route GET /api/admin/billing/history
+ * @desc Get billing history
+ */
+router.get('/billing/history',
+    authenticate,
+    asyncHandler(async (req, res) => {
+        const { query } = await import('../config/database.js');
+
+        const history = await query(`
+            SELECT 
+                DATE_FORMAT(created_at, '%Y-%m') as month,
+                COUNT(*) as requests,
+                SUM(input_tokens) as input_tokens,
+                SUM(output_tokens) as output_tokens,
+                SUM(images_generated) as images,
+                SUM(base_cost) as base_cost,
+                SUM(total_cost) as total_billed
+            FROM api_usage
+            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+            ORDER BY month DESC
+            LIMIT 12
+        `);
+
+        res.json({
+            success: true,
+            data: history
+        });
+    })
+);
+
 export default router;

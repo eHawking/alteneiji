@@ -188,6 +188,9 @@ async function loadPageData(pageId) {
         case 'ai-social':
             await loadPostsHistory();
             break;
+        case 'billing':
+            await loadBillingData();
+            break;
     }
 }
 
@@ -1274,3 +1277,56 @@ window.savePost = savePost;
 window.generateVideo = generateVideo;
 window.refreshVideoStatus = refreshVideoStatus;
 window.downloadPostImage = downloadPostImage;
+
+// =====================
+// BILLING & USAGE
+// =====================
+
+async function loadBillingData() {
+    const period = document.getElementById('billing-period')?.value || 'month';
+
+    try {
+        const response = await apiRequest(`/admin/billing?period=${period}`);
+        const { summary, recentActivity } = response.data;
+
+        // Update summary stats
+        document.getElementById('total-requests').textContent = summary.totalRequests.toLocaleString();
+        document.getElementById('total-images').textContent = summary.totalImages.toLocaleString();
+        document.getElementById('base-cost').textContent = `$${summary.baseCost.toFixed(4)}`;
+        document.getElementById('total-billed').textContent = `$${summary.totalBilled.toFixed(4)}`;
+        document.getElementById('input-tokens').textContent = summary.totalInputTokens.toLocaleString();
+        document.getElementById('output-tokens').textContent = summary.totalOutputTokens.toLocaleString();
+
+        // Update recent activity table
+        const tbody = document.getElementById('recent-activity');
+        if (tbody) {
+            if (recentActivity && recentActivity.length > 0) {
+                tbody.innerHTML = recentActivity.map(item => `
+                    <tr>
+                        <td><span class="badge badge-info">${item.operation || 'unknown'}</span></td>
+                        <td>${item.model || 'gemini'}</td>
+                        <td><strong>$${parseFloat(item.total_cost || 0).toFixed(4)}</strong></td>
+                        <td>${new Date(item.created_at).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No API activity recorded yet</td></tr>';
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load billing data:', error);
+        // Show zeros on error
+        document.getElementById('total-requests').textContent = '0';
+        document.getElementById('total-images').textContent = '0';
+        document.getElementById('base-cost').textContent = '$0.00';
+        document.getElementById('total-billed').textContent = '$0.00';
+    }
+}
+
+// Setup billing period change listener
+document.addEventListener('DOMContentLoaded', () => {
+    const periodSelect = document.getElementById('billing-period');
+    if (periodSelect) {
+        periodSelect.addEventListener('change', loadBillingData);
+    }
+});

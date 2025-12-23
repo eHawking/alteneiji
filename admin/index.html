@@ -104,6 +104,10 @@
                     <i class="fas fa-users"></i>
                     <span>Users</span>
                 </a>
+                <a href="#billing" class="nav-item" data-page="billing">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Billing & Usage</span>
+                </a>
                 <a href="#settings" class="nav-item" data-page="settings">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
@@ -831,6 +835,102 @@
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing & Usage Page -->
+                <div id="page-billing" class="page">
+                    <div class="page-header">
+                        <h3>Billing & Usage</h3>
+                        <select id="billing-period" class="form-control" style="width: auto;">
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month" selected>This Month</option>
+                            <option value="all">All Time</option>
+                        </select>
+                    </div>
+
+                    <!-- Billing Summary Cards -->
+                    <div class="stats-grid" style="margin-bottom: 20px;">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-value" id="total-requests">0</span>
+                                <span class="stat-label">API Requests</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">
+                                <i class="fas fa-image"></i>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-value" id="total-images">0</span>
+                                <span class="stat-label">Images Generated</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-value" id="base-cost">$0.00</span>
+                                <span class="stat-label">API Cost</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: linear-gradient(135deg, #f1c40f, #f39c12);">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-value" id="total-billed">$0.00</span>
+                                <span class="stat-label">Total (with 50% markup)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Token Usage -->
+                    <div class="card" style="margin-bottom: 20px;">
+                        <div class="card-header">
+                            <h4>Token Usage</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="stats-grid">
+                                <div class="stat-card" style="background: var(--bg-tertiary);">
+                                    <div class="stat-content">
+                                        <span class="stat-value" id="input-tokens">0</span>
+                                        <span class="stat-label">Input Tokens</span>
+                                    </div>
+                                </div>
+                                <div class="stat-card" style="background: var(--bg-tertiary);">
+                                    <div class="stat-content">
+                                        <span class="stat-value" id="output-tokens">0</span>
+                                        <span class="stat-label">Output Tokens</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity & Usage by Operation -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Recent API Activity</h4>
+                        </div>
+                        <div class="card-body">
+                            <table class="data-table" id="billing-table">
+                                <thead>
+                                    <tr>
+                                        <th>Operation</th>
+                                        <th>Model</th>
+                                        <th>Cost</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-activity"></tbody>
                             </table>
                         </div>
                     </div>
