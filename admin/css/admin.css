@@ -4078,3 +4078,41 @@ body {
         width: 100%;
     }
 }
+
+/* =============================================
+   UNIVERSAL PLATFORM TOGGLE
+   ============================================= */
+
+.platform-toggle.universal {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.05) 100%);
+    border: 1px solid var(--accent-gold);
+    position: relative;
+    padding: 8px 12px;
+    gap: 6px;
+}
+
+.platform-toggle.universal i {
+    color: var(--accent-gold);
+}
+
+.platform-toggle.universal .toggle-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent-gold);
+}
+
+.platform-toggle.universal:has(input:checked) {
+    background: linear-gradient(135deg, var(--accent-gold) 0%, #c4a030 100%);
+}
+
+.platform-toggle.universal:has(input:checked) i,
+.platform-toggle.universal:has(input:checked) .toggle-label {
+    color: var(--bg-primary);
+}
+
+.platform-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--border-color);
+    margin: 0 8px;
+}

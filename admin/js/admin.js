@@ -2415,6 +2415,46 @@ window.toggleToneDropdown = toggleToneDropdown;
 window.selectTone = selectTone;
 
 // =====================
+// UNIVERSAL POST TOGGLE
+// =====================
+
+function toggleUniversalPost(label) {
+    const universalCheckbox = label.querySelector('input');
+    const isChecked = universalCheckbox.checked;
+
+    // Get all platform checkboxes
+    const platformCheckboxes = document.querySelectorAll('.platform-toggle:not(.universal) input[name="platform"]');
+
+    if (isChecked) {
+        // Universal is selected - uncheck all individual platforms
+        platformCheckboxes.forEach(cb => {
+            cb.checked = false;
+        });
+    } else {
+        // Universal is deselected - select all individual platforms
+        platformCheckboxes.forEach(cb => {
+            cb.checked = true;
+        });
+    }
+}
+
+// Also handle clicking individual platforms to uncheck universal
+document.addEventListener('DOMContentLoaded', () => {
+    const platformCheckboxes = document.querySelectorAll('.platform-toggle:not(.universal) input[name="platform"]');
+
+    platformCheckboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+            const universalCheckbox = document.querySelector('.platform-toggle.universal input');
+            if (universalCheckbox && cb.checked) {
+                universalCheckbox.checked = false;
+            }
+        });
+    });
+});
+
+window.toggleUniversalPost = toggleUniversalPost;
+
+// =====================
 // VIDEO DROPDOWN FUNCTIONS  
 // =====================
 

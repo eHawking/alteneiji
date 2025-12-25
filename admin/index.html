@@ -17,7 +17,7 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 
-    <link rel="stylesheet" href="css/admin.css?v=19">
+    <link rel="stylesheet" href="css/admin.css?v=20">
 
     <!-- JSZip for media download -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -385,6 +385,13 @@
                         <div class="platform-row">
                             <span class="platform-label">Post to:</span>
                             <div class="platform-toggles">
+                                <label class="platform-toggle universal" title="One post for all platforms"
+                                    onclick="toggleUniversalPost(this)">
+                                    <input type="checkbox" name="platform" value="universal">
+                                    <i class="fas fa-globe"></i>
+                                    <span class="toggle-label">All</span>
+                                </label>
+                                <div class="platform-divider"></div>
                                 <label class="platform-toggle instagram">
                                     <input type="checkbox" name="platform" value="instagram" checked>
                                     <i class="fab fa-instagram"></i>
@@ -1384,7 +1391,7 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/admin.js?v=19"></script>
+    <script src="js/admin.js?v=20"></script>
 </body>
 
 </html>
