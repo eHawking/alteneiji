@@ -1242,16 +1242,8 @@
     <!-- Image Viewer Modal with Zoom -->
     <div id="image-viewer-modal" class="modal-overlay hidden" onclick="closeImageViewer()">
         <div class="image-viewer-content" onclick="event.stopPropagation()">
-            <div class="image-viewer-toolbar">
-                <button onclick="zoomImage(-0.25)" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
-                <span id="zoom-level">100%</span>
-                <button onclick="zoomImage(0.25)" title="Zoom In"><i class="fas fa-search-plus"></i></button>
-                <button onclick="resetZoom()" title="Reset"><i class="fas fa-undo"></i></button>
-                <button onclick="closeImageViewer()" title="Close"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="image-viewer-container">
-                <img id="viewer-image" src="" alt="Preview" draggable="false">
-            </div>
+            <button class="image-viewer-close" onclick="closeImageViewer()"><i class="fas fa-times"></i></button>
+            <img id="viewer-image" src="" alt="Preview" onclick="event.stopPropagation()">
         </div>
     </div>
 
@@ -1286,7 +1278,7 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/admin.js?v=9"></script>
+    <script src="js/admin.js?v=10"></script>
 </body>
 
 </html>

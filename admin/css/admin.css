@@ -2947,60 +2947,38 @@ body {
    ============================================= */
 
 .image-viewer-content {
-    display: flex;
-    flex-direction: column;
-    max-width: 95vw;
-    max-height: 95vh;
-}
-
-.image-viewer-toolbar {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 15px;
-    padding: 12px 20px;
-    background: var(--bg-card);
-    border-radius: 12px 12px 0 0;
 }
 
-.image-viewer-toolbar button {
+.image-viewer-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
     width: 40px;
     height: 40px;
     border: none;
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border-radius: 50%;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 18px;
+    z-index: 10;
     transition: var(--transition);
 }
 
-.image-viewer-toolbar button:hover {
+.image-viewer-close:hover {
     background: var(--accent-gold);
     color: var(--bg-primary);
 }
 
-#zoom-level {
-    font-weight: 600;
-    min-width: 60px;
-    text-align: center;
-}
-
-.image-viewer-container {
-    overflow: auto;
-    background: rgba(0, 0, 0, 0.9);
-    border-radius: 0 0 12px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    max-height: calc(95vh - 100px);
-}
-
 #viewer-image {
-    transition: transform 0.2s ease;
-    border-radius: 8px;
-    max-width: none;
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
 /* =============================================
