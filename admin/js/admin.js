@@ -560,7 +560,20 @@ async function loadPostsHistory() {
                     linkedin: '#0A66C2'
                 };
                 const imageHtml = post.image_url
-                    ? `<img src="${post.image_url}" alt="Post image">`
+                    ? `<div class="post-image">
+                        <img src="${post.image_url}" alt="Post image" onclick="openImageViewer('${post.image_url}')">
+                        <div class="post-image-actions">
+                            <button onclick="openImageViewer('${post.image_url}')" title="View Full Size">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="openImageEditModal('${post.platform}', '${post.image_url}')" title="Edit Image">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="showRegeneratePopup('${post.platform}', '${post.image_url}')" title="Regenerate">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                       </div>`
                     : `<i class="fab fa-${post.platform === 'twitter' ? 'x-twitter' : post.platform}"></i>`;
 
                 return `
