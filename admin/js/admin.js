@@ -151,13 +151,48 @@ function navigateTo(pageId) {
         'contacts': 'Contact Submissions',
         'gulfood': 'Gulfood 2026 Registrations',
         'users': 'User Management',
-        'settings': 'Settings'
+        'settings': 'Settings',
+        'billing': 'Billing & Usage',
+        'saved-posts': 'Saved Posts',
+        'media': 'Media Library',
+        'brands': 'Brand Management'
     };
     document.getElementById('page-title').textContent = titles[pageId] || pageId;
+
+    // Close sidebar on mobile after navigation
+    closeSidebar();
 
     // Load page data
     loadPageData(pageId);
 }
+
+// Sidebar toggle functions
+function openSidebar() {
+    document.querySelector('.sidebar').classList.add('open');
+    document.querySelector('.sidebar-overlay').classList.add('active');
+    document.body.classList.add('sidebar-open');
+}
+
+function closeSidebar() {
+    document.querySelector('.sidebar').classList.remove('open');
+    const overlay = document.querySelector('.sidebar-overlay');
+    if (overlay) overlay.classList.remove('active');
+    document.body.classList.remove('sidebar-open');
+}
+
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar.classList.contains('open')) {
+        closeSidebar();
+    } else {
+        openSidebar();
+    }
+}
+
+window.closeSidebar = closeSidebar;
+window.openSidebar = openSidebar;
+window.toggleSidebar = toggleSidebar;
+
 
 async function loadPageData(pageId) {
     switch (pageId) {
@@ -1280,7 +1315,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Mobile menu toggle
     document.querySelector('.menu-toggle').addEventListener('click', () => {
-        document.querySelector('.sidebar').classList.toggle('open');
+        toggleSidebar();
     });
 
     // AI SEO Generate

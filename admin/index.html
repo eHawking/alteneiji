@@ -51,11 +51,19 @@
 
     <!-- Admin Dashboard -->
     <div id="admin-app" class="admin-app hidden">
+        <!-- Sidebar Overlay for mobile -->
+        <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <i class="fas fa-building"></i>
-                <span>Alteneiji Admin</span>
+                <div class="sidebar-brand">
+                    <i class="fas fa-building"></i>
+                    <span>Alteneiji Admin</span>
+                </div>
+                <button class="sidebar-close" onclick="closeSidebar()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
 
             <nav class="sidebar-nav">
