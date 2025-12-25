@@ -560,20 +560,7 @@ async function loadPostsHistory() {
                     linkedin: '#0A66C2'
                 };
                 const imageHtml = post.image_url
-                    ? `<div class="post-image">
-                        <img src="${post.image_url}" alt="Post image" onclick="openImageViewer('${post.image_url}')">
-                        <div class="post-image-actions">
-                            <button onclick="openImageViewer('${post.image_url}')" title="View Full Size">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button onclick="openImageEditModal('${post.platform}', '${post.image_url}')" title="Edit Image">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="showRegeneratePopup('${post.platform}', '${post.image_url}')" title="Regenerate">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
-                        </div>
-                       </div>`
+                    ? `<img src="${post.image_url}" alt="Post image">`
                     : `<i class="fab fa-${post.platform === 'twitter' ? 'x-twitter' : post.platform}"></i>`;
 
                 return `
@@ -1620,10 +1607,16 @@ async function loadSavedPosts() {
                 </div>
                 ${post.image_url ? `
                     <div class="post-image">
-                        <img src="${post.image_url}" alt="" onerror="this.parentElement.remove()">
-                        <div class="post-image-overlay">
-                            <button class="regenerate-btn" onclick="regeneratePostImage(${post.id}, '${post.platform}')">
-                                <i class="fas fa-sync"></i> Regenerate
+                        <img src="${post.image_url}" alt="" onclick="openImageViewer('${post.image_url}')" onerror="this.parentElement.remove()">
+                        <div class="post-image-actions">
+                            <button onclick="openImageViewer('${post.image_url}')" title="View Full Size">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="openImageEditModal('${post.platform}', '${post.image_url}')" title="Edit Image">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="regeneratePostImage(${post.id}, '${post.platform}')" title="Regenerate">
+                                <i class="fas fa-sync-alt"></i>
                             </button>
                         </div>
                     </div>
@@ -1848,16 +1841,23 @@ async function loadMediaLibrary() {
 
         grid.innerHTML = images.map(file => `
             <div class="media-item">
-                <img src="${file.url}" alt="${file.name}" onclick="showImagePreview('${file.url}')" onerror="this.parentElement.remove()">
+                <img src="${file.url}" alt="${file.name}" onclick="openImageViewer('${file.url}')" onerror="this.parentElement.remove()">
                 <div class="media-overlay">
                     <div class="media-platform" style="background: ${platformColors[file.platform] || '#666'}">
                         <i class="fab fa-${file.platform === 'twitter' ? 'x-twitter' : file.platform}"></i>
                     </div>
                     <span class="media-name">${file.name}</span>
-                    <div class="media-actions">
-                        <button onclick="window.open('${file.url}')" title="View"><i class="fas fa-expand"></i></button>
-                        <button onclick="downloadFile('${file.url}', '${file.name}')" title="Download"><i class="fas fa-download"></i></button>
-                    </div>
+                </div>
+                <div class="post-image-actions">
+                    <button onclick="openImageViewer('${file.url}')" title="View Full Size">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button onclick="openImageEditModal('${file.platform}', '${file.url}')" title="Edit Image">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick="downloadFile('${file.url}', '${file.name}')" title="Download">
+                        <i class="fas fa-download"></i>
+                    </button>
                 </div>
             </div>
         `).join('');
