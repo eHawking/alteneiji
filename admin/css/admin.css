@@ -2880,13 +2880,22 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     box-shadow: var(--shadow-lg);
-    z-index: 100;
+    z-index: 9999;
     display: none;
 }
 
 .tone-dropdown.open .tone-dropdown-menu {
     display: block;
 }
+
+/* Fix overflow for composer card to allow dropdown to show */
+.composer-card,
+.composer-toolbar,
+.toolbar-left,
+.composer-input-area {
+    overflow: visible !important;
+}
+
 
 .tone-option {
     display: flex;
