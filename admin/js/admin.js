@@ -2505,3 +2505,64 @@ window.applyImageEdit = applyImageEdit;
 window.showImagePreview = function (url) {
     openImageViewer(url);
 };
+
+// =====================
+// CACHE MANAGEMENT
+// =====================
+
+async function clearAllCache() {
+    const btn = document.getElementById('clear-cache-btn');
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Clearing...</span>';
+        btn.disabled = true;
+    }
+
+    try {
+        // Clear localStorage
+        localStorage.clear();
+        console.log('✓ LocalStorage cleared');
+
+        // Clear sessionStorage
+        sessionStorage.clear();
+        console.log('✓ SessionStorage cleared');
+
+        // Clear Service Worker caches
+        if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map(name => caches.delete(name)));
+            console.log('✓ Service Worker caches cleared:', cacheNames.length);
+        }
+
+        // Unregister service workers
+        if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations) {
+                await registration.unregister();
+            }
+            console.log('✓ Service Workers unregistered:', registrations.length);
+        }
+
+        // Clear cookies (current path)
+        document.cookie.split(';').forEach(cookie => {
+            const name = cookie.split('=')[0].trim();
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+        });
+        console.log('✓ Cookies cleared');
+
+        showToast('Cache cleared! Reloading...', 'success');
+
+        // Hard reload after short delay
+        setTimeout(() => {
+            window.location.reload(true);
+        }, 1000);
+
+    } catch (error) {
+        console.error('Cache clear error:', error);
+        showToast('Cache cleared partially. Reloading...', 'warning');
+        setTimeout(() => {
+            window.location.reload(true);
+        }, 1000);
+    }
+}
+
+window.clearAllCache = clearAllCache;
