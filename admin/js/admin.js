@@ -2415,6 +2415,56 @@ window.toggleToneDropdown = toggleToneDropdown;
 window.selectTone = selectTone;
 
 // =====================
+// VIDEO DROPDOWN FUNCTIONS  
+// =====================
+
+function toggleVideoDropdown(btn, type) {
+    const dropdown = btn.closest('.video-dropdown');
+    const wasOpen = dropdown.classList.contains('open');
+
+    // Close all video dropdowns first
+    document.querySelectorAll('.video-dropdown').forEach(d => d.classList.remove('open'));
+
+    // Toggle the clicked one
+    if (!wasOpen) {
+        dropdown.classList.add('open');
+    }
+}
+
+function selectVideoOption(type, value, displayText, element) {
+    // Update the hidden input
+    const inputId = type === 'platform' ? 'video-platform' :
+        type === 'style' ? 'video-style' :
+            type === 'duration' ? 'video-duration' : 'video-aspect';
+
+    document.getElementById(inputId).value = value;
+
+    // Update the button text
+    const textId = type === 'platform' ? 'selected-platform-text' :
+        type === 'style' ? 'selected-style-text' :
+            type === 'duration' ? 'selected-duration-text' : 'selected-aspect-text';
+
+    document.getElementById(textId).textContent = displayText;
+
+    // Update active state
+    element.closest('.video-dropdown-menu').querySelectorAll('.video-option').forEach(opt => opt.classList.remove('active'));
+    element.classList.add('active');
+
+    // Close dropdown
+    element.closest('.video-dropdown').classList.remove('open');
+}
+
+// Close video dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.video-dropdown')) {
+        document.querySelectorAll('.video-dropdown').forEach(d => d.classList.remove('open'));
+    }
+});
+
+window.toggleVideoDropdown = toggleVideoDropdown;
+window.selectVideoOption = selectVideoOption;
+
+// =====================
 // BRAND SELECTOR MODAL
 // =====================
 

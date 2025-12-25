@@ -17,7 +17,7 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 
-    <link rel="stylesheet" href="css/admin.css?v=18">
+    <link rel="stylesheet" href="css/admin.css?v=19">
 
     <!-- JSZip for media download -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -525,111 +525,207 @@
 
                 <!-- AI Video Generator Page -->
                 <div id="page-ai-video" class="page">
-                    <div class="page-header">
-                        <h3>AI Marketing Video Generator</h3>
-                        <p>Generate professional marketing videos using AI (Sora 2, Veo 3.1, Pippit AI)</p>
-                    </div>
+                    <!-- Video Composer Card -->
+                    <div class="composer-card">
+                        <!-- Composer Header -->
+                        <div class="composer-header">
+                            <div class="composer-title">
+                                <i class="fas fa-film"></i>
+                                <span>Create Video</span>
+                            </div>
+                            <span class="badge-ai"><i class="fas fa-bolt"></i> AI Powered</span>
+                        </div>
 
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="form-group">
-                                <label for="video-prompt">Video Description / Script</label>
-                                <textarea id="video-prompt" rows="4"
-                                    placeholder="Describe your video... e.g., 'A professional product showcase of organic spices with cinematic lighting, warm colors, slow motion close-ups of spices being poured, Dubai skyline in background'"></textarea>
+                        <!-- Main Input Area -->
+                        <div class="composer-input-area">
+                            <textarea id="video-prompt" rows="4"
+                                placeholder="Describe your video... e.g., 'A professional product showcase of organic spices with cinematic lighting, warm colors, slow motion close-ups of spices being poured, Dubai skyline in background'"></textarea>
+
+                            <!-- Video Options Toolbar -->
+                            <div class="composer-toolbar">
+                                <div class="toolbar-left">
+                                    <!-- AI Platform Dropdown -->
+                                    <div class="video-dropdown">
+                                        <button class="tool-btn-select" onclick="toggleVideoDropdown(this, 'platform')">
+                                            <i class="fas fa-robot"></i>
+                                            <span id="selected-platform-text">Sora 2</span>
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                        <div class="video-dropdown-menu" id="platform-dropdown">
+                                            <div class="video-option"
+                                                onclick="selectVideoOption('platform', 'sora', 'Sora 2', this)">
+                                                <i class="fas fa-brain"></i> Sora 2 (OpenAI)
+                                            </div>
+                                            <div class="video-option"
+                                                onclick="selectVideoOption('platform', 'veo', 'Veo 3.1', this)">
+                                                <i class="fab fa-google"></i> Veo 3.1 (Google)
+                                            </div>
+                                            <div class="video-option"
+                                                onclick="selectVideoOption('platform', 'pippit', 'Pippit AI', this)">
+                                                <i class="fas fa-magic"></i> Pippit AI
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="toolbar-divider"></div>
+
+                                    <!-- Style Dropdown -->
+                                    <div class="video-dropdown">
+                                        <button class="tool-btn-select" onclick="toggleVideoDropdown(this, 'style')">
+                                            <i class="fas fa-palette"></i>
+                                            <span id="selected-style-text">Cinematic</span>
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                        <div class="video-dropdown-menu" id="style-dropdown">
+                                            <div class="video-option active"
+                                                onclick="selectVideoOption('style', 'cinematic', 'Cinematic', this)">
+                                                <i class="fas fa-video"></i> Cinematic
+                                            </div>
+                                            <div class="video-option"
+                                                onclick="selectVideoOption('style', 'commercial', 'Commercial', this)">
+                                                <i class="fas fa-ad"></i> Commercial
+                                            </div>
+                                            <div class="video-option"
+                                                onclick="selectVideoOption('style', 'documentary', 'Documentary', this)">
+                                                <i class="fas fa-file-video"></i> Documentary
+                                            </div>
+                                            <div class="video-option"
+                                                onclick="selectVideoOption('style', 'social-media', 'Social Media', this)">
+                                                <i class="fas fa-share-alt"></i> Social Media
+                                            </div>
+                                            <div class="video-option"
+                                                onclick="selectVideoOption('style', 'product-showcase', 'Product', this)">
+                                                <i class="fas fa-box"></i> Product Showcase
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="toolbar-divider"></div>
+
+                                    <!-- Duration Dropdown -->
+                                    <div class="video-dropdown">
+                                        <button class="tool-btn-select" onclick="toggleVideoDropdown(this, 'duration')">
+                                            <i class="fas fa-clock"></i>
+                                            <span id="selected-duration-text">15s</span>
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                        <div class="video-dropdown-menu" id="duration-dropdown">
+                                            <div class="video-option"
+                                                onclick="selectVideoOption('duration', '5', '5s', this)">5 seconds</div>
+                                            <div class="video-option"
+                                                onclick="selectVideoOption('duration', '10', '10s', this)">10 seconds
+                                            </div>
+                                            <div class="video-option active"
+                                                onclick="selectVideoOption('duration', '15', '15s', this)">15 seconds
+                                            </div>
+                                            <div class="video-option"
+                                                onclick="selectVideoOption('duration', '30', '30s', this)">30 seconds
+                                            </div>
+                                            <div class="video-option"
+                                                onclick="selectVideoOption('duration', '60', '60s', this)">60 seconds
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="toolbar-divider"></div>
+
+                                    <!-- Aspect Ratio Dropdown -->
+                                    <div class="video-dropdown">
+                                        <button class="tool-btn-select" onclick="toggleVideoDropdown(this, 'aspect')">
+                                            <i class="fas fa-expand"></i>
+                                            <span id="selected-aspect-text">16:9</span>
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                        <div class="video-dropdown-menu" id="aspect-dropdown">
+                                            <div class="video-option active"
+                                                onclick="selectVideoOption('aspect', '16:9', '16:9', this)">
+                                                <i class="fas fa-desktop"></i> 16:9 Landscape
+                                            </div>
+                                            <div class="video-option"
+                                                onclick="selectVideoOption('aspect', '9:16', '9:16', this)">
+                                                <i class="fas fa-mobile-alt"></i> 9:16 Portrait
+                                            </div>
+                                            <div class="video-option"
+                                                onclick="selectVideoOption('aspect', '1:1', '1:1', this)">
+                                                <i class="fas fa-square"></i> 1:1 Square
+                                            </div>
+                                            <div class="video-option"
+                                                onclick="selectVideoOption('aspect', '4:5', '4:5', this)">
+                                                <i class="fab fa-instagram"></i> 4:5 Instagram
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="video-platform">AI Platform</label>
-                                    <select id="video-platform">
-                                        <option value="sora">Sora 2 (OpenAI)</option>
-                                        <option value="veo">Veo 3.1 (Google)</option>
-                                        <option value="pippit">Pippit AI</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="video-style">Video Style</label>
-                                    <select id="video-style">
-                                        <option value="cinematic">Cinematic</option>
-                                        <option value="commercial">Commercial</option>
-                                        <option value="documentary">Documentary</option>
-                                        <option value="social-media">Social Media</option>
-                                        <option value="product-showcase">Product Showcase</option>
-                                        <option value="corporate">Corporate</option>
-                                    </select>
-                                </div>
+
+                            <!-- Hidden inputs for form values -->
+                            <input type="hidden" id="video-platform" value="sora">
+                            <input type="hidden" id="video-style" value="cinematic">
+                            <input type="hidden" id="video-duration" value="15">
+                            <input type="hidden" id="video-aspect" value="16:9">
+                        </div>
+
+                        <!-- Video Options Row -->
+                        <div class="platform-row">
+                            <div class="video-options-toggles">
+                                <label class="option-toggle active" title="Background Music">
+                                    <input type="checkbox" id="video-music" checked>
+                                    <i class="fas fa-music"></i>
+                                    <span>Music</span>
+                                </label>
+                                <label class="option-toggle" title="AI Voiceover">
+                                    <input type="checkbox" id="video-voiceover">
+                                    <i class="fas fa-microphone"></i>
+                                    <span>Voiceover</span>
+                                </label>
+                                <label class="option-toggle" title="Auto Captions">
+                                    <input type="checkbox" id="video-captions">
+                                    <i class="fas fa-closed-captioning"></i>
+                                    <span>Captions</span>
+                                </label>
+                                <label class="option-toggle active" title="Logo Watermark">
+                                    <input type="checkbox" id="video-logo" checked>
+                                    <i class="fas fa-crown"></i>
+                                    <span>Logo</span>
+                                </label>
                             </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="video-duration">Duration</label>
-                                    <select id="video-duration">
-                                        <option value="5">5 seconds</option>
-                                        <option value="10">10 seconds</option>
-                                        <option value="15" selected>15 seconds</option>
-                                        <option value="30">30 seconds</option>
-                                        <option value="60">60 seconds</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="video-aspect">Aspect Ratio</label>
-                                    <select id="video-aspect">
-                                        <option value="16:9">16:9 (Landscape)</option>
-                                        <option value="9:16">9:16 (Portrait/Reels)</option>
-                                        <option value="1:1">1:1 (Square)</option>
-                                        <option value="4:5">4:5 (Instagram)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>Additional Options</label>
-                                <div class="checkbox-group">
-                                    <label class="checkbox-label">
-                                        <input type="checkbox" id="video-music" checked>
-                                        <i class="fas fa-music"></i> Add Background Music
-                                    </label>
-                                    <label class="checkbox-label">
-                                        <input type="checkbox" id="video-voiceover">
-                                        <i class="fas fa-microphone"></i> Generate Voiceover
-                                    </label>
-                                    <label class="checkbox-label">
-                                        <input type="checkbox" id="video-captions">
-                                        <i class="fas fa-closed-captioning"></i> Add Captions
-                                    </label>
-                                    <label class="checkbox-label">
-                                        <input type="checkbox" id="video-logo" checked>
-                                        <i class="fas fa-image"></i> Add Logo Watermark
-                                    </label>
-                                </div>
-                            </div>
-                            <button id="generate-video-btn" class="btn btn-primary">
-                                <i class="fas fa-film"></i> Generate Video
+
+                            <!-- Generate Button -->
+                            <button id="generate-video-btn" class="generate-btn-new">
+                                <i class="fas fa-sparkles"></i>
+                                <span>Generate</span>
                             </button>
                         </div>
                     </div>
 
-                    <div id="video-results" class="card hidden">
-                        <div class="card-header">
-                            <h3><i class="fas fa-check-circle"></i> Video Generation Started</h3>
+                    <!-- Video Results Card -->
+                    <div id="video-results" class="composer-card hidden" style="margin-top: 20px;">
+                        <div class="composer-header">
+                            <div class="composer-title">
+                                <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                                <span>Video Generation Started</span>
+                            </div>
+                            <span class="badge-ai"><i class="fas fa-spinner fa-spin"></i> Processing</span>
                         </div>
-                        <div class="card-body">
+                        <div class="video-result-content">
                             <div class="video-preview">
                                 <div class="video-placeholder">
                                     <i class="fas fa-spinner fa-spin"></i>
                                     <p>Your video is being generated...</p>
-                                    <p class="text-muted">This may take 2-5 minutes depending on the platform and
-                                        duration.</p>
+                                    <p class="text-muted">This may take 2-5 minutes</p>
                                 </div>
                             </div>
-                            <div class="video-info">
+                            <div class="video-info-grid">
                                 <div class="info-item">
                                     <span class="label">Platform:</span>
-                                    <span id="video-result-platform">-</span>
+                                    <span id="video-result-platform">Sora 2</span>
                                 </div>
                                 <div class="info-item">
                                     <span class="label">Status:</span>
                                     <span id="video-result-status" class="status-badge processing">Processing</span>
                                 </div>
                                 <div class="info-item">
-                                    <span class="label">Estimated Time:</span>
+                                    <span class="label">Estimated:</span>
                                     <span id="video-result-time">~3 minutes</span>
                                 </div>
                             </div>
@@ -647,7 +743,9 @@
                     <!-- Recent Videos -->
                     <div class="card" style="margin-top: 20px;">
                         <div class="card-header">
-                            <h3>Recent Generated Videos</h3>
+                            <h3><i class="fas fa-history"
+                                    style="color: var(--accent-gold); margin-right: 8px;"></i>Recent Generated Videos
+                            </h3>
                         </div>
                         <div class="card-body">
                             <div id="recent-videos" class="video-gallery">
@@ -1286,7 +1384,7 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/admin.js?v=16"></script>
+    <script src="js/admin.js?v=19"></script>
 </body>
 
 </html>
