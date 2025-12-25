@@ -98,7 +98,7 @@ router.post('/seo/generate',
         body('contentType').optional().isIn(['page', 'product', 'service', 'blog'])
     ],
     asyncHandler(async (req, res) => {
-        if (!gemini.isConfigured()) {
+        if (!(await gemini.isConfigured())) {
             throw new AppError('AI service not configured. Please add GEMINI_API_KEY to .env file.', 503);
         }
 
@@ -142,7 +142,7 @@ router.post('/seo/analyze',
         body('content').notEmpty().withMessage('Content is required')
     ],
     asyncHandler(async (req, res) => {
-        if (!gemini.isConfigured()) {
+        if (!(await gemini.isConfigured())) {
             throw new AppError('AI service not configured', 503);
         }
 
@@ -177,7 +177,7 @@ router.post('/social/generate',
         body('generateImages').optional().isBoolean()
     ],
     asyncHandler(async (req, res) => {
-        if (!gemini.isConfigured()) {
+        if (!(await gemini.isConfigured())) {
             throw new AppError('AI service not configured', 503);
         }
 
@@ -255,7 +255,7 @@ router.post('/social/generate-single',
         body('generateImages').optional().isBoolean()
     ],
     asyncHandler(async (req, res) => {
-        if (!gemini.isConfigured()) {
+        if (!(await gemini.isConfigured())) {
             throw new AppError('AI service not configured', 503);
         }
 
@@ -331,7 +331,7 @@ router.post('/regenerate-image',
         body('prompt').optional()
     ],
     asyncHandler(async (req, res) => {
-        if (!gemini.isConfigured()) {
+        if (!(await gemini.isConfigured())) {
             throw new AppError('AI service not configured', 503);
         }
 
@@ -394,7 +394,7 @@ router.post('/marketing/campaign',
         body('duration').optional()
     ],
     asyncHandler(async (req, res) => {
-        if (!gemini.isConfigured()) {
+        if (!(await gemini.isConfigured())) {
             throw new AppError('AI service not configured', 503);
         }
 
@@ -441,7 +441,7 @@ router.post('/content/optimize',
         body('content').notEmpty().withMessage('Content is required')
     ],
     asyncHandler(async (req, res) => {
-        if (!gemini.isConfigured()) {
+        if (!(await gemini.isConfigured())) {
             throw new AppError('AI service not configured', 503);
         }
 

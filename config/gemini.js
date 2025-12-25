@@ -86,10 +86,16 @@ async function ensureConfigured() {
 
 /**
  * Check if Gemini AI is configured
- * @returns {boolean} Whether AI is available
+ * This will also try to load from database if not in memory
+ * @returns {Promise<boolean>} Whether AI is available
  */
-export function isConfigured() {
-    return genAI !== null && model !== null;
+export async function isConfigured() {
+    // First check memory
+    if (genAI !== null && model !== null) {
+        return true;
+    }
+    // Try to load from database or env
+    return await ensureConfigured();
 }
 
 /**
