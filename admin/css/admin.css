@@ -3247,3 +3247,259 @@ body {
     transform: translateY(-3px);
     box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
 }
+
+/* =============================================
+   COMPREHENSIVE RESPONSIVE STYLES
+   ============================================= */
+
+/* Tablet (1024px and below) */
+@media (max-width: 1024px) {
+    .social-posts-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .billing-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .brand-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Mobile (768px and below) */
+@media (max-width: 768px) {
+
+    /* Header */
+    .header {
+        padding: 12px 15px;
+    }
+
+    .header-title h1 {
+        font-size: 18px;
+    }
+
+    /* Stats Grid - single column on small phones */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
+
+    /* Social Posts */
+    .social-posts-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .social-post-card {
+        margin-bottom: 10px;
+    }
+
+    .platform-header {
+        padding: 12px 15px;
+        font-size: 13px;
+    }
+
+    .post-content {
+        padding: 12px;
+    }
+
+    .post-text {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .post-actions-row {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .post-actions-row .btn {
+        flex: 1;
+        min-width: 45%;
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    /* Post Image Actions */
+    .post-image-actions {
+        gap: 8px;
+    }
+
+    .post-image-actions button {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+
+    /* Cards */
+    .card {
+        margin-bottom: 15px;
+    }
+
+    .card-header {
+        padding: 12px 15px;
+    }
+
+    .card-header h3 {
+        font-size: 15px;
+    }
+
+    .card-body {
+        padding: 15px;
+    }
+
+    /* Forms */
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+
+    .btn-lg {
+        padding: 12px 20px;
+    }
+
+    /* Tables */
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    table {
+        min-width: 500px;
+    }
+
+    /* Brand Cards */
+    .brand-cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .brand-card {
+        padding: 15px;
+    }
+
+    /* Billing */
+    .billing-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .billing-stat {
+        padding: 15px;
+    }
+
+    /* Modal adjustments */
+    .modal-content {
+        margin: 10px;
+        max-height: 90vh;
+    }
+
+    .modal-header {
+        padding: 15px;
+    }
+
+    .modal-body {
+        padding: 15px;
+    }
+
+    /* Tool buttons in social generator */
+    .tool-buttons {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .tool-btn {
+        flex: 1;
+        min-width: 45%;
+        font-size: 12px;
+        padding: 8px 10px;
+    }
+
+    /* Tone dropdown */
+    .tone-dropdown {
+        width: 100%;
+    }
+
+    .tone-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Saved posts grid */
+    #saved-posts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Filter pills */
+    .filter-pills {
+        flex-wrap: wrap;
+    }
+
+    .filter-pill {
+        flex: 1;
+        text-align: center;
+        min-width: 80px;
+    }
+}
+
+/* Small Mobile (480px and below) */
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        padding: 12px;
+    }
+
+    .stat-value {
+        font-size: 24px;
+    }
+
+    .stat-label {
+        font-size: 12px;
+    }
+
+    /* Very compact buttons on small screens */
+    .post-actions-row .btn {
+        min-width: 100%;
+    }
+
+    /* Popups even smaller */
+    .regenerate-popup,
+    .image-edit-popup {
+        max-width: 100%;
+        border-radius: 8px;
+    }
+
+    .popup-header h3 {
+        font-size: 16px;
+    }
+
+    /* Smaller form elements */
+    .form-group input,
+    .form-group textarea {
+        font-size: 16px;
+        /* Prevents iOS zoom */
+    }
+}
