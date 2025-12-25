@@ -1744,13 +1744,20 @@ async function loadMediaLibrary() {
     const grid = document.getElementById('media-grid');
     if (!grid) return;
 
+    // Show loading animation on refresh button
+    const refreshBtn = document.querySelector('[onclick="loadMediaLibrary()"]');
+    if (refreshBtn) {
+        refreshBtn.innerHTML = '<i class="fas fa-sync fa-spin"></i> Loading...';
+        refreshBtn.disabled = true;
+    }
+
     try {
         // Get all posts that have images
         const response = await apiRequest('/social/posts');
         const posts = response.data || [];
 
         // Extract unique images from posts
-        const images = [];
+        let images = [];
         const seenUrls = new Set();
 
         posts.forEach(post => {
@@ -1761,7 +1768,7 @@ async function loadMediaLibrary() {
                     url: post.image_url,
                     name: `${post.platform}-${new Date(post.created_at).toLocaleDateString().replace(/\//g, '-')}.png`,
                     platform: post.platform,
-                    date: post.created_at
+                    date: new Date(post.created_at)
                 });
             }
             // Also check media_urls array if it exists
@@ -1773,15 +1780,39 @@ async function loadMediaLibrary() {
                             url: url,
                             name: `${post.platform}-${i + 1}-${new Date(post.created_at).toLocaleDateString().replace(/\//g, '-')}.png`,
                             platform: post.platform,
-                            date: post.created_at
+                            date: new Date(post.created_at)
                         });
                     }
                 });
             }
         });
 
+        // Store all images for filtering
+        window.allMediaImages = images;
+
+        // Apply filters
+        const searchTerm = document.getElementById('media-search')?.value?.toLowerCase() || '';
+        const sortBy = document.getElementById('media-sort')?.value || 'newest';
+
+        // Filter by search
+        if (searchTerm) {
+            images = images.filter(img =>
+                img.name.toLowerCase().includes(searchTerm) ||
+                img.platform.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        // Sort
+        if (sortBy === 'newest') {
+            images.sort((a, b) => b.date - a.date);
+        } else if (sortBy === 'oldest') {
+            images.sort((a, b) => a.date - b.date);
+        } else if (sortBy === 'name') {
+            images.sort((a, b) => a.name.localeCompare(b.name));
+        }
+
         if (images.length === 0) {
-            grid.innerHTML = '<p class="empty-state"><i class="fas fa-photo-video"></i><br>No images yet. Generate some posts with images first!</p>';
+            grid.innerHTML = '<p class="empty-state"><i class="fas fa-photo-video"></i><br>No images found' + (searchTerm ? ' for "' + searchTerm + '"' : '') + '</p>';
             return;
         }
 
@@ -1791,6 +1822,10 @@ async function loadMediaLibrary() {
             twitter: '#1DA1F2',
             linkedin: '#0A66C2'
         };
+
+        // Check view mode
+        const isListView = document.querySelector('.view-btn[data-view="list"]')?.classList.contains('active');
+        grid.className = isListView ? 'media-library-list' : 'media-library-grid';
 
         grid.innerHTML = images.map(file => `
             <div class="media-item">
@@ -1807,11 +1842,33 @@ async function loadMediaLibrary() {
                 </div>
             </div>
         `).join('');
+
+        showToast(`Loaded ${images.length} images`, 'success');
     } catch (error) {
         grid.innerHTML = '<p class="empty-state"><i class="fas fa-exclamation-triangle"></i><br>Failed to load media</p>';
         console.error('Failed to load media:', error);
+    } finally {
+        // Reset refresh button
+        if (refreshBtn) {
+            refreshBtn.innerHTML = '<i class="fas fa-sync"></i> Refresh';
+            refreshBtn.disabled = false;
+        }
     }
 }
+
+function setMediaView(view, btn) {
+    // Update active button
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Update grid class
+    const grid = document.getElementById('media-grid');
+    if (grid) {
+        grid.className = view === 'list' ? 'media-library-list' : 'media-library-grid';
+    }
+}
+
+window.setMediaView = setMediaView;
 
 function showImagePreview(url) {
     const modal = document.createElement('div');

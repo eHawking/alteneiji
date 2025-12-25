@@ -2605,3 +2605,49 @@ body {
     padding-top: 15px;
     border-top: 1px solid var(--border-color);
 }
+
+/* =============================================
+   MEDIA LIBRARY LIST VIEW
+   ============================================= */
+
+.media-library-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.media-library-list .media-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.media-library-list .media-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.media-library-list .media-overlay {
+    position: static;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    gap: 15px;
+    background: none;
+    opacity: 1;
+}
+
+.media-library-list .media-name {
+    flex: 1;
+}
+
+.media-library-list .media-actions {
+    display: flex;
+    gap: 8px;
+}

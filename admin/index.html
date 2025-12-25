@@ -978,14 +978,16 @@
                         <div class="filter-row">
                             <div class="search-box">
                                 <i class="fas fa-search"></i>
-                                <input type="text" id="media-search" placeholder="Search files...">
+                                <input type="text" id="media-search" placeholder="Search files..."
+                                    oninput="loadMediaLibrary()">
                             </div>
                             <div class="view-toggle">
-                                <button class="view-btn active" data-view="grid"><i
+                                <button class="view-btn active" data-view="grid" onclick="setMediaView('grid', this)"><i
                                         class="fas fa-th-large"></i></button>
-                                <button class="view-btn" data-view="list"><i class="fas fa-list"></i></button>
+                                <button class="view-btn" data-view="list" onclick="setMediaView('list', this)"><i
+                                        class="fas fa-list"></i></button>
                             </div>
-                            <select id="media-sort" class="premium-select">
+                            <select id="media-sort" class="premium-select" onchange="loadMediaLibrary()">
                                 <option value="newest">Newest First</option>
                                 <option value="oldest">Oldest First</option>
                                 <option value="name">By Name</option>
@@ -1179,7 +1181,7 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/admin.js?v=3"></script>
+    <script src="js/admin.js?v=4"></script>
 </body>
 
 </html>
