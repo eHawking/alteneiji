@@ -432,14 +432,67 @@ router.put('/gulfood/:id/status',
 router.get('/billing',
     authenticate,
     asyncHandler(async (req, res) => {
-        const gemini = await import('../config/gemini.js');
+        const { query } = await import('../config/database.js');
         const period = req.query.period || 'month';
 
-        // Access via default export or named export
-        const getUsageStats = gemini.getUsageStats || gemini.default?.getUsageStats;
+        // Build date filter
+        let dateFilter = '';
+        if (period === 'today') {
+            dateFilter = "WHERE DATE(created_at) = CURDATE()";
+        } else if (period === 'week') {
+            dateFilter = "WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+        } else if (period === 'month') {
+            dateFilter = "WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+        }
 
-        if (!getUsageStats) {
-            return res.json({
+        try {
+            // Get summary
+            const summary = await query(`
+                SELECT 
+                    COUNT(*) as total_requests,
+                    COALESCE(SUM(input_tokens), 0) as total_input_tokens,
+                    COALESCE(SUM(output_tokens), 0) as total_output_tokens,
+                    COALESCE(SUM(images_generated), 0) as total_images,
+                    COALESCE(SUM(base_cost), 0) as total_base_cost,
+                    COALESCE(SUM(total_cost), 0) as total_billed
+                FROM api_usage ${dateFilter}
+            `);
+
+            // Get recent activity
+            const recent = await query(`
+                SELECT operation, model, total_cost, created_at 
+                FROM api_usage 
+                ORDER BY created_at DESC 
+                LIMIT 10
+            `);
+
+            // Get by operation
+            const byOperation = await query(`
+                SELECT operation, COUNT(*) as count, SUM(total_cost) as cost
+                FROM api_usage ${dateFilter}
+                GROUP BY operation
+            `);
+
+            res.json({
+                success: true,
+                data: {
+                    period,
+                    summary: {
+                        totalRequests: parseInt(summary[0]?.total_requests) || 0,
+                        totalInputTokens: parseInt(summary[0]?.total_input_tokens) || 0,
+                        totalOutputTokens: parseInt(summary[0]?.total_output_tokens) || 0,
+                        totalImages: parseInt(summary[0]?.total_images) || 0,
+                        baseCost: parseFloat(summary[0]?.total_base_cost) || 0,
+                        totalBilled: parseFloat(summary[0]?.total_billed) || 0,
+                        markupPercent: 50
+                    },
+                    recentActivity: recent || [],
+                    byOperation: byOperation || []
+                }
+            });
+        } catch (error) {
+            console.error('Billing query error:', error.message);
+            res.json({
                 success: true,
                 data: {
                     period,
@@ -457,26 +510,6 @@ router.get('/billing',
                 }
             });
         }
-
-        const stats = await getUsageStats(period);
-
-        res.json({
-            success: true,
-            data: {
-                period,
-                summary: {
-                    totalRequests: parseInt(stats.summary?.total_requests) || 0,
-                    totalInputTokens: parseInt(stats.summary?.total_input_tokens) || 0,
-                    totalOutputTokens: parseInt(stats.summary?.total_output_tokens) || 0,
-                    totalImages: parseInt(stats.summary?.total_images) || 0,
-                    baseCost: parseFloat(stats.summary?.total_base_cost) || 0,
-                    totalBilled: parseFloat(stats.summary?.total_billed) || 0,
-                    markupPercent: 50
-                },
-                recentActivity: stats.recent || [],
-                byOperation: stats.byOperation || []
-            }
-        });
     })
 );
 
