@@ -529,9 +529,12 @@ async function autoSavePosts(posts, topic, tone) {
 }
 
 async function loadPostsHistory() {
+    // History section was removed, just skip
+    const container = document.getElementById('posts-history');
+    if (!container) return;
+
     try {
         const response = await apiRequest('/social/posts?limit=12');
-        const container = document.getElementById('posts-history');
 
         if (response.data && response.data.length > 0) {
             container.innerHTML = response.data.map(post => {
@@ -616,22 +619,48 @@ async function savePost(platform, btn) {
 }
 
 async function saveAllPosts() {
-    if (!window.generatedPosts) return;
+    const cards = document.querySelectorAll('#social-results .social-post-card:not(.generating):not(.error)');
+
+    if (!cards || cards.length === 0) {
+        showToast('No posts to save', 'error');
+        return;
+    }
 
     showLoading();
-    const topic = document.getElementById('social-topic').value;
-    const platforms = Object.keys(window.generatedPosts).filter(p => window.generatedPosts[p]?.content);
+    const topic = document.getElementById('social-topic')?.value || 'Generated post';
+    let savedCount = 0;
 
     try {
-        await apiRequest('/social/generate-and-create', {
-            method: 'POST',
-            body: JSON.stringify({
-                topic,
-                platforms,
-                tone: document.getElementById('social-tone').value
-            })
-        });
-        showToast('All posts saved as drafts!', 'success');
+        for (const card of cards) {
+            const platform = card.dataset.platform;
+            const content = card.querySelector('.post-text')?.textContent || '';
+            const hashtagEls = card.querySelectorAll('.hashtags span');
+            const hashtags = Array.from(hashtagEls).map(s => s.textContent.replace('#', ''));
+            const imgEl = card.querySelector('.post-image img');
+            const imageUrl = imgEl ? imgEl.src : null;
+
+            if (content) {
+                try {
+                    await apiRequest('/social/posts', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            platform,
+                            content,
+                            hashtags,
+                            image_url: imageUrl,
+                            aiGenerated: true,
+                            aiPrompt: topic,
+                            status: 'draft'
+                        })
+                    });
+                    savedCount++;
+                } catch (saveErr) {
+                    console.error(`Failed to save ${platform}:`, saveErr);
+                }
+            }
+        }
+
+        showToast(`${savedCount} posts saved as drafts!`, 'success');
     } catch (error) {
         showToast(error.message || 'Failed to save posts', 'error');
     } finally {

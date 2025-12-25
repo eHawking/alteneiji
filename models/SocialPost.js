@@ -61,10 +61,12 @@ export class SocialPost {
             [...params, limit, offset]
         );
 
-        // Parse JSON fields
+        // Parse JSON fields and add image_url getter
         posts.forEach(post => {
             post.hashtags = typeof post.hashtags === 'string' ? JSON.parse(post.hashtags) : post.hashtags;
             post.media_urls = typeof post.media_urls === 'string' ? JSON.parse(post.media_urls) : post.media_urls;
+            // Add image_url for frontend compatibility
+            post.image_url = (post.media_urls && post.media_urls.length > 0) ? post.media_urls[0] : null;
         });
 
         return {
@@ -98,8 +100,16 @@ export class SocialPost {
         const {
             platform, content, hashtags = [], mediaUrls = [],
             aiGenerated = false, aiPrompt = null,
-            status = 'draft', scheduledAt = null, createdBy = null
+            status = 'draft', scheduledAt = null, createdBy = null,
+            image_url = null, imageUrl = null  // Support both naming conventions
         } = postData;
+
+        // Handle single image_url being passed
+        let finalMediaUrls = [...mediaUrls];
+        const singleImage = image_url || imageUrl;
+        if (singleImage && !finalMediaUrls.includes(singleImage)) {
+            finalMediaUrls.push(singleImage);
+        }
 
         const uuid = uuidv4();
         const id = await insert(
@@ -109,7 +119,7 @@ export class SocialPost {
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 uuid, platform, content,
-                JSON.stringify(hashtags), JSON.stringify(mediaUrls),
+                JSON.stringify(hashtags), JSON.stringify(finalMediaUrls),
                 aiGenerated, aiPrompt, status, scheduledAt, createdBy
             ]
         );
