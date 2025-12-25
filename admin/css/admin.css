@@ -2651,3 +2651,108 @@ body {
     display: flex;
     gap: 8px;
 }
+
+/* =============================================
+   LOGO UPLOAD & FORM ENHANCEMENTS
+   ============================================= */
+
+.logo-upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--bg-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+}
+
+.logo-upload-area:hover {
+    border-color: var(--accent-gold);
+    background: rgba(212, 175, 55, 0.05);
+}
+
+#brand-logo-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-secondary);
+}
+
+#brand-logo-placeholder i {
+    font-size: 32px;
+    color: var(--accent-gold);
+}
+
+.input-with-button {
+    display: flex;
+    gap: 10px;
+}
+
+.input-with-button input {
+    flex: 1;
+}
+
+.form-hint {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+}
+
+/* =============================================
+   CONFIRM POPUP
+   ============================================= */
+
+.confirm-popup {
+    background: var(--bg-card);
+    padding: 30px;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+.confirm-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.confirm-icon i {
+    font-size: 28px;
+    color: #ef4444;
+}
+
+.confirm-popup h3 {
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+.confirm-popup p {
+    color: var(--text-secondary);
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border: none;
+}

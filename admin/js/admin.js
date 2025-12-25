@@ -2134,6 +2134,8 @@ async function loadBrands() {
 function showBrandForm(brand = null) {
     const formCard = document.getElementById('brand-form-card');
     const formTitle = document.getElementById('brand-form-title');
+    const logoPreview = document.getElementById('brand-logo-preview');
+    const logoPlaceholder = document.getElementById('brand-logo-placeholder');
     formCard.classList.remove('hidden');
 
     if (brand) {
@@ -2142,16 +2144,101 @@ function showBrandForm(brand = null) {
         document.getElementById('brand-name').value = brand.name || '';
         document.getElementById('brand-website').value = brand.website || '';
         document.getElementById('brand-about').value = brand.about || '';
+        document.getElementById('brand-logo-url').value = brand.logo_url || '';
+
+        // Show logo preview if exists
+        if (brand.logo_url) {
+            logoPreview.src = brand.logo_url;
+            logoPreview.style.display = 'block';
+            logoPlaceholder.style.display = 'none';
+        } else {
+            logoPreview.style.display = 'none';
+            logoPlaceholder.style.display = 'flex';
+        }
     } else {
         formTitle.textContent = 'Add New Brand';
         document.getElementById('brand-form').reset();
         document.getElementById('brand-id').value = '';
+        document.getElementById('brand-logo-url').value = '';
+        logoPreview.style.display = 'none';
+        logoPlaceholder.style.display = 'flex';
     }
 }
 
 function hideBrandForm() {
     document.getElementById('brand-form-card').classList.add('hidden');
     document.getElementById('brand-form').reset();
+    document.getElementById('brand-logo-preview').style.display = 'none';
+    document.getElementById('brand-logo-placeholder').style.display = 'flex';
+}
+
+// Preview logo when selected
+function previewBrandLogo(input) {
+    const preview = document.getElementById('brand-logo-preview');
+    const placeholder = document.getElementById('brand-logo-placeholder');
+
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
+            // Store as base64 for now (for small logos)
+            document.getElementById('brand-logo-url').value = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Fetch website info using AI
+async function fetchWebsiteInfo() {
+    const websiteInput = document.getElementById('brand-website');
+    const aboutInput = document.getElementById('brand-about');
+    const fetchBtn = document.getElementById('fetch-website-btn');
+    const url = websiteInput.value.trim();
+
+    if (!url) {
+        showToast('Please enter a website URL first', 'warning');
+        return;
+    }
+
+    // Validate URL
+    try {
+        new URL(url);
+    } catch {
+        showToast('Please enter a valid URL', 'error');
+        return;
+    }
+
+    // Show loading
+    fetchBtn.disabled = true;
+    fetchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
+
+    try {
+        // Use AI to generate about text based on URL
+        const response = await apiRequest('/ai/analyze-website', {
+            method: 'POST',
+            body: JSON.stringify({ url })
+        });
+
+        if (response.data && response.data.about) {
+            aboutInput.value = response.data.about;
+            showToast('Website info fetched!', 'success');
+        } else {
+            // Fallback: just set the domain as brand info
+            const domain = new URL(url).hostname.replace('www.', '');
+            aboutInput.value = `${domain} - A professional business. Visit their website to learn more about their products and services.`;
+            showToast('Basic info generated. You can edit it.', 'info');
+        }
+    } catch (error) {
+        // Fallback on error
+        const domain = new URL(url).hostname.replace('www.', '');
+        aboutInput.value = `${domain} - Visit the website to learn more about their services and offerings.`;
+        showToast('Could not fetch full info. Basic description added.', 'warning');
+    } finally {
+        fetchBtn.disabled = false;
+        fetchBtn.innerHTML = '<i class="fas fa-magic"></i> Fetch Info';
+    }
 }
 
 async function saveBrand(event) {
@@ -2161,7 +2248,8 @@ async function saveBrand(event) {
     const data = {
         name: document.getElementById('brand-name').value,
         website: document.getElementById('brand-website').value || null,
-        about: document.getElementById('brand-about').value || null
+        about: document.getElementById('brand-about').value || null,
+        logoUrl: document.getElementById('brand-logo-url').value || null
     };
 
     try {
@@ -2194,13 +2282,36 @@ function editBrand(id) {
 }
 
 async function deleteBrand(id) {
-    if (!confirm('Delete this brand?')) return;
+    const brand = allBrands.find(b => b.id === id);
+    const brandName = brand ? brand.name : 'this brand';
 
+    // Show styled confirmation popup
+    const modal = document.createElement('div');
+    modal.className = 'regenerate-modal';
+    modal.innerHTML = `
+        <div class="confirm-popup">
+            <div class="confirm-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <h3>Delete Brand?</h3>
+            <p>Are you sure you want to delete <strong>${brandName}</strong>?<br>This action cannot be undone.</p>
+            <div class="confirm-actions">
+                <button class="btn btn-secondary" onclick="this.closest('.regenerate-modal').remove()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDeleteBrand(${id}, this.closest('.regenerate-modal'))">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+async function confirmDeleteBrand(id, modal) {
     try {
         await apiRequest(`/brands/${id}`, { method: 'DELETE' });
+        modal.remove();
         showToast('Brand deleted!', 'success');
         await loadBrands();
     } catch (error) {
+        modal.remove();
         showToast('Failed to delete brand: ' + error.message, 'error');
     }
 }
@@ -2211,3 +2322,6 @@ window.hideBrandForm = hideBrandForm;
 window.saveBrand = saveBrand;
 window.editBrand = editBrand;
 window.deleteBrand = deleteBrand;
+window.confirmDeleteBrand = confirmDeleteBrand;
+window.previewBrandLogo = previewBrandLogo;
+window.fetchWebsiteInfo = fetchWebsiteInfo;

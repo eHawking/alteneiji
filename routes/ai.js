@@ -635,5 +635,62 @@ router.get('/video/recent',
     })
 );
 
+/**
+ * @route POST /api/ai/analyze-website
+ * @desc Analyze a website URL and generate About text for brand
+ */
+router.post('/analyze-website',
+    authenticate,
+    [
+        body('url').notEmpty().withMessage('URL is required')
+    ],
+    asyncHandler(async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                errors: errors.array()
+            });
+        }
+
+        const { url } = req.body;
+
+        // Use AI to generate about text based on URL
+        if (!(await gemini.isConfigured())) {
+            // Fallback if AI not configured
+            const domain = new URL(url).hostname.replace('www.', '');
+            return res.json({
+                success: true,
+                data: {
+                    about: `${domain} - A professional business. Visit their website for more information about products and services.`
+                }
+            });
+        }
+
+        try {
+            // Use Gemini to analyze the URL/brand
+            const domain = new URL(url).hostname.replace('www.', '');
+            const prompt = `Based on the website URL "${url}" (domain: ${domain}), generate a brief professional "About" description for this brand. The description should be 2-3 sentences highlighting what type of business this might be, suitable for a brand profile. Keep it professional and generic if you don't have specific information. Return ONLY the about text, no extra formatting.`;
+
+            const response = await gemini.generateContent(prompt);
+
+            res.json({
+                success: true,
+                data: {
+                    about: response || `${domain} - A professional business offering quality products and services.`
+                }
+            });
+        } catch (error) {
+            const domain = new URL(url).hostname.replace('www.', '');
+            res.json({
+                success: true,
+                data: {
+                    about: `${domain} - Visit the website to learn more about their services and offerings.`
+                }
+            });
+        }
+    })
+);
+
 export default router;
 
