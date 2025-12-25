@@ -424,9 +424,15 @@ async function generateSocialPosts() {
                 ${data.imageUrl ? `
                     <div class="post-image">
                         <img src="${data.imageUrl}" alt="${platform} post" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image\\'></i>'">
-                        <div class="post-image-overlay">
-                            <button class="regenerate-btn" onclick="showRegeneratePopup('${platform}', '${data.imageUrl}')">
-                                <i class="fas fa-sync-alt"></i> Regenerate
+                        <div class="post-image-actions">
+                            <button onclick="openImageViewer('${data.imageUrl}')" title="View Full Size">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="openImageEditModal('${platform}', '${data.imageUrl}')" title="Edit Image">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="showRegeneratePopup('${platform}', '${data.imageUrl}')" title="Regenerate">
+                                <i class="fas fa-sync-alt"></i>
                             </button>
                         </div>
                     </div>` : ''}
@@ -2566,3 +2572,207 @@ async function clearAllCache() {
 }
 
 window.clearAllCache = clearAllCache;
+
+// =====================
+// REGENERATE POPUP
+// =====================
+
+let currentRegeneratePlatform = '';
+let currentRegenerateImageUrl = '';
+
+function showRegeneratePopup(platform, imageUrl) {
+    currentRegeneratePlatform = platform;
+    currentRegenerateImageUrl = imageUrl;
+
+    const modal = document.createElement('div');
+    modal.className = 'regenerate-modal';
+    modal.id = 'regenerate-modal';
+    modal.innerHTML = `
+        <div class="regenerate-popup">
+            <div class="popup-header">
+                <i class="fas fa-sync-alt"></i>
+                <h3>Regenerate Image</h3>
+                <button class="modal-close" onclick="closeRegeneratePopup()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="popup-body">
+                <div class="current-image-preview">
+                    <img src="${imageUrl}" alt="Current image">
+                    <span class="preview-label">Current Image</span>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-magic"></i> New Prompt</label>
+                    <textarea id="regenerate-prompt" rows="3" placeholder="Describe what you want for the new image..."></textarea>
+                    <small class="form-hint">e.g., "Professional office setting with modern design"</small>
+                </div>
+            </div>
+            <div class="popup-footer">
+                <button class="btn btn-secondary" onclick="closeRegeneratePopup()">Cancel</button>
+                <button class="btn btn-primary" onclick="executeRegenerate()">
+                    <i class="fas fa-sync-alt"></i> Regenerate
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function closeRegeneratePopup() {
+    const modal = document.getElementById('regenerate-modal');
+    if (modal) modal.remove();
+}
+
+async function executeRegenerate() {
+    const prompt = document.getElementById('regenerate-prompt').value.trim();
+    const btn = document.querySelector('#regenerate-modal .btn-primary');
+
+    if (!prompt) {
+        showToast('Please enter a prompt for the new image', 'warning');
+        return;
+    }
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+    btn.disabled = true;
+
+    try {
+        const response = await apiRequest('/ai/regenerate-image', {
+            method: 'POST',
+            body: JSON.stringify({
+                platform: currentRegeneratePlatform,
+                prompt: prompt
+            })
+        });
+
+        if (response.data && response.data.imageUrl) {
+            // Update the image in the card
+            const card = document.getElementById(`post-card-${currentRegeneratePlatform}`);
+            if (card) {
+                const img = card.querySelector('.post-image img');
+                if (img) {
+                    img.src = response.data.imageUrl;
+                    // Update button URLs
+                    const actions = card.querySelector('.post-image-actions');
+                    if (actions) {
+                        actions.innerHTML = `
+                            <button onclick="openImageViewer('${response.data.imageUrl}')" title="View Full Size">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="openImageEditModal('${currentRegeneratePlatform}', '${response.data.imageUrl}')" title="Edit Image">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="showRegeneratePopup('${currentRegeneratePlatform}', '${response.data.imageUrl}')" title="Regenerate">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        `;
+                    }
+                }
+            }
+            closeRegeneratePopup();
+            showToast('Image regenerated!', 'success');
+        }
+    } catch (error) {
+        showToast('Failed to regenerate: ' + error.message, 'error');
+        btn.innerHTML = '<i class="fas fa-sync-alt"></i> Regenerate';
+        btn.disabled = false;
+    }
+}
+
+window.showRegeneratePopup = showRegeneratePopup;
+window.closeRegeneratePopup = closeRegeneratePopup;
+window.executeRegenerate = executeRegenerate;
+
+// =====================
+// IMAGE EDIT MODAL
+// =====================
+
+let currentEditPlatform = '';
+
+function openImageEditModal(platform, imageUrl) {
+    currentEditPlatform = platform;
+    currentEditImageUrl = imageUrl;
+
+    const modal = document.createElement('div');
+    modal.className = 'regenerate-modal';
+    modal.id = 'image-edit-modal-dynamic';
+    modal.innerHTML = `
+        <div class="image-edit-popup">
+            <div class="popup-header">
+                <i class="fas fa-edit"></i>
+                <h3>Edit Image</h3>
+                <button class="modal-close" onclick="closeImageEditModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="popup-body">
+                <div class="edit-image-container">
+                    <img id="live-edit-preview" src="${imageUrl}" alt="Edit preview">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-wand-magic-sparkles"></i> Edit Instructions</label>
+                    <textarea id="image-edit-instructions" rows="3" placeholder="Describe what changes you want to make..."></textarea>
+                    <small class="form-hint">e.g., "Add warm sunset lighting", "Make colors more vibrant", "Add company logo in corner"</small>
+                </div>
+            </div>
+            <div class="popup-footer">
+                <button class="btn btn-secondary" onclick="closeImageEditModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="applyLiveEdit()">
+                    <i class="fas fa-check"></i> Apply Changes
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function closeImageEditModal() {
+    const modal = document.getElementById('image-edit-modal-dynamic');
+    if (modal) modal.remove();
+}
+
+async function applyLiveEdit() {
+    const instructions = document.getElementById('image-edit-instructions').value.trim();
+    const btn = document.querySelector('#image-edit-modal-dynamic .btn-primary');
+
+    if (!instructions) {
+        showToast('Please enter edit instructions', 'warning');
+        return;
+    }
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Applying...';
+    btn.disabled = true;
+
+    try {
+        // For now, use regenerate API with edit context
+        const response = await apiRequest('/ai/regenerate-image', {
+            method: 'POST',
+            body: JSON.stringify({
+                platform: currentEditPlatform,
+                prompt: `Edit the current image: ${instructions}`
+            })
+        });
+
+        if (response.data && response.data.imageUrl) {
+            // Update preview
+            document.getElementById('live-edit-preview').src = response.data.imageUrl;
+            currentEditImageUrl = response.data.imageUrl;
+
+            // Update card image
+            const card = document.getElementById(`post-card-${currentEditPlatform}`);
+            if (card) {
+                const img = card.querySelector('.post-image img');
+                if (img) {
+                    img.src = response.data.imageUrl;
+                }
+            }
+
+            showToast('Edit applied!', 'success');
+            btn.innerHTML = '<i class="fas fa-check"></i> Apply Changes';
+            btn.disabled = false;
+        }
+    } catch (error) {
+        showToast('Failed to apply edit: ' + error.message, 'error');
+        btn.innerHTML = '<i class="fas fa-check"></i> Apply Changes';
+        btn.disabled = false;
+    }
+}
+
+window.openImageEditModal = openImageEditModal;
+window.closeImageEditModal = closeImageEditModal;
+window.applyLiveEdit = applyLiveEdit;
