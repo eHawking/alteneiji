@@ -435,7 +435,30 @@ router.get('/billing',
         const gemini = await import('../config/gemini.js');
         const period = req.query.period || 'month';
 
-        const stats = await gemini.getUsageStats(period);
+        // Access via default export or named export
+        const getUsageStats = gemini.getUsageStats || gemini.default?.getUsageStats;
+
+        if (!getUsageStats) {
+            return res.json({
+                success: true,
+                data: {
+                    period,
+                    summary: {
+                        totalRequests: 0,
+                        totalInputTokens: 0,
+                        totalOutputTokens: 0,
+                        totalImages: 0,
+                        baseCost: 0,
+                        totalBilled: 0,
+                        markupPercent: 50
+                    },
+                    recentActivity: [],
+                    byOperation: []
+                }
+            });
+        }
+
+        const stats = await getUsageStats(period);
 
         res.json({
             success: true,
