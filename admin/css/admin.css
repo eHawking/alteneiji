@@ -3510,14 +3510,49 @@ body {
         padding: 8px 10px;
     }
 
-    /* Tone dropdown */
+    /* Tone dropdown - opens upward on mobile */
     .tone-dropdown {
         width: 100%;
+    }
+
+    .tone-dropdown-menu {
+        bottom: 100%;
+        top: auto;
+        margin-bottom: 5px;
+        margin-top: 0;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
     }
 
     .tone-btn {
         width: 100%;
         justify-content: center;
+    }
+
+    /* Video Generator responsive */
+    .video-options-grid {
+        grid-template-columns: 1fr !important;
+        gap: 15px;
+    }
+
+    .video-option-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .video-option-group label {
+        margin-bottom: 8px;
+    }
+
+    /* AI pages form responsiveness */
+    .form-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .form-row .form-group {
+        width: 100%;
     }
 
     /* Saved posts grid */
@@ -3534,6 +3569,15 @@ body {
         flex: 1;
         text-align: center;
         min-width: 80px;
+    }
+
+    /* Cards overflow fix for dropdowns */
+    .card {
+        overflow: visible;
+    }
+
+    .card-body {
+        overflow: visible;
     }
 }
 
