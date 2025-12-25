@@ -1547,6 +1547,10 @@ async function loadSavedPosts() {
         const response = await apiRequest('/social/posts');
         allSavedPosts = response.data || [];
 
+        // Update post count in header
+        const countEl = document.getElementById('posts-count');
+        if (countEl) countEl.textContent = allSavedPosts.length;
+
         // Apply filters
         let filtered = allSavedPosts;
 
@@ -1732,18 +1736,60 @@ async function loadMediaLibrary() {
     if (!grid) return;
 
     try {
-        const response = await apiRequest('/uploads/list?folder=social');
-        const files = response.data || [];
+        // Get all posts that have images
+        const response = await apiRequest('/social/posts');
+        const posts = response.data || [];
 
-        if (files.length === 0) {
-            grid.innerHTML = '<p class="empty-state">No media files yet. Generate some posts with images first!</p>';
+        // Extract unique images from posts
+        const images = [];
+        const seenUrls = new Set();
+
+        posts.forEach(post => {
+            // Check image_url (first image from media_urls)
+            if (post.image_url && !seenUrls.has(post.image_url)) {
+                seenUrls.add(post.image_url);
+                images.push({
+                    url: post.image_url,
+                    name: `${post.platform}-${new Date(post.created_at).toLocaleDateString().replace(/\//g, '-')}.png`,
+                    platform: post.platform,
+                    date: post.created_at
+                });
+            }
+            // Also check media_urls array if it exists
+            if (post.media_urls && Array.isArray(post.media_urls)) {
+                post.media_urls.forEach((url, i) => {
+                    if (url && !seenUrls.has(url)) {
+                        seenUrls.add(url);
+                        images.push({
+                            url: url,
+                            name: `${post.platform}-${i + 1}-${new Date(post.created_at).toLocaleDateString().replace(/\//g, '-')}.png`,
+                            platform: post.platform,
+                            date: post.created_at
+                        });
+                    }
+                });
+            }
+        });
+
+        if (images.length === 0) {
+            grid.innerHTML = '<p class="empty-state"><i class="fas fa-photo-video"></i><br>No images yet. Generate some posts with images first!</p>';
             return;
         }
 
-        grid.innerHTML = files.map(file => `
+        const platformColors = {
+            instagram: '#E4405F',
+            facebook: '#1877F2',
+            twitter: '#1DA1F2',
+            linkedin: '#0A66C2'
+        };
+
+        grid.innerHTML = images.map(file => `
             <div class="media-item">
-                <img src="${file.url}" alt="${file.name}" onclick="showImagePreview('${file.url}')">
+                <img src="${file.url}" alt="${file.name}" onclick="showImagePreview('${file.url}')" onerror="this.parentElement.remove()">
                 <div class="media-overlay">
+                    <div class="media-platform" style="background: ${platformColors[file.platform] || '#666'}">
+                        <i class="fab fa-${file.platform === 'twitter' ? 'x-twitter' : file.platform}"></i>
+                    </div>
                     <span class="media-name">${file.name}</span>
                     <div class="media-actions">
                         <button onclick="window.open('${file.url}')" title="View"><i class="fas fa-expand"></i></button>
@@ -1753,8 +1799,7 @@ async function loadMediaLibrary() {
             </div>
         `).join('');
     } catch (error) {
-        // Fallback: try to list from social folder directly
-        grid.innerHTML = '<p class="empty-state">Failed to load media. Check uploads/social folder.</p>';
+        grid.innerHTML = '<p class="empty-state"><i class="fas fa-exclamation-triangle"></i><br>Failed to load media</p>';
         console.error('Failed to load media:', error);
     }
 }

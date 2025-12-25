@@ -933,7 +933,13 @@
                     </div>
 
                     <!-- Hidden select for backwards compatibility -->
-                    <select id="posts-platform-filter" style="display:none"></select>
+                    <select id="posts-platform-filter" style="display:none">
+                        <option value="">All</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="facebook">Facebook</option>
+                        <option value="twitter">Twitter</option>
+                        <option value="linkedin">LinkedIn</option>
+                    </select>
 
                     <div id="saved-posts-grid" class="saved-posts-grid">
                         <p class="empty-state"><i class="fas fa-inbox"></i><br>No posts yet</p>
