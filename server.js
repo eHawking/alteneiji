@@ -17,6 +17,7 @@ import servicesRoutes from './routes/services.js';
 import aiRoutes from './routes/ai.js';
 import socialRoutes from './routes/social.js';
 import adminRoutes from './routes/admin.js';
+import brandsRoutes from './routes/brands.js';
 
 // Import middleware
 import { optionalAuth } from './middleware/auth.js';
@@ -98,6 +99,7 @@ app.use('/api/services', servicesRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/social', socialRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/brands', brandsRoutes);
 
 // =====================
 // PUBLIC API ENDPOINTS

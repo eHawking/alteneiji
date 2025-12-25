@@ -18,6 +18,9 @@
 
 
     <link rel="stylesheet" href="css/admin.css">
+
+    <!-- JSZip for media download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 
 <body>
@@ -97,6 +100,10 @@
                 <a href="#media" class="nav-item" data-page="media">
                     <i class="fas fa-images"></i>
                     <span>Media Library</span>
+                </a>
+                <a href="#brands" class="nav-item" data-page="brands">
+                    <i class="fas fa-crown"></i>
+                    <span>Brand Settings</span>
                 </a>
 
                 <div class="nav-section">Management</div>
@@ -324,10 +331,10 @@
                                     </button>
                                     <input type="file" id="attach-image-input" accept="image/*" style="display:none"
                                         onchange="handleImageAttach(this)">
-                                    <!-- Voice TTS -->
-                                    <button class="tool-btn" id="tool-voice" onclick="toggleTool('enable-voice', this)"
-                                        title="Enable Voice Readout">
-                                        <i class="fas fa-volume-up"></i>
+                                    <!-- Voice Input -->
+                                    <button class="tool-btn" id="tool-voice" onclick="toggleVoiceInput(this)"
+                                        title="Voice Input - Speak your topic">
+                                        <i class="fas fa-microphone"></i>
                                     </button>
                                     <!-- Logo -->
                                     <button class="tool-btn" id="tool-logo"
@@ -991,6 +998,62 @@
                     </div>
                 </div>
 
+                <!-- Brand Settings Page -->
+                <div id="page-brands" class="page">
+                    <div class="premium-page-header">
+                        <div class="header-content">
+                            <div class="header-icon"><i class="fas fa-crown"></i></div>
+                            <div>
+                                <h2>Brand Settings</h2>
+                                <p>Manage your brands for AI-generated content</p>
+                            </div>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn-premium" onclick="showBrandForm()">
+                                <i class="fas fa-plus"></i> Add Brand
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Brand Form (hidden by default) -->
+                    <div id="brand-form-card" class="card hidden">
+                        <div class="card-header">
+                            <h3><i class="fas fa-edit"></i> <span id="brand-form-title">Add New Brand</span></h3>
+                            <button class="btn btn-ghost" onclick="hideBrandForm()"><i
+                                    class="fas fa-times"></i></button>
+                        </div>
+                        <div class="card-body">
+                            <form id="brand-form" onsubmit="saveBrand(event)">
+                                <input type="hidden" id="brand-id" value="">
+                                <div class="form-group">
+                                    <label>Brand Name *</label>
+                                    <input type="text" id="brand-name" required placeholder="e.g. Alteneiji Group">
+                                </div>
+                                <div class="form-group">
+                                    <label>Website URL</label>
+                                    <input type="url" id="brand-website" placeholder="https://example.com">
+                                </div>
+                                <div class="form-group">
+                                    <label>About Brand</label>
+                                    <textarea id="brand-about" rows="4"
+                                        placeholder="Describe your brand, products/services, and target audience..."></textarea>
+                                </div>
+                                <div class="action-bar">
+                                    <button type="button" class="btn btn-secondary"
+                                        onclick="hideBrandForm()">Cancel</button>
+                                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save
+                                        Brand</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Brands List -->
+                    <div id="brands-list" class="brands-grid">
+                        <p class="empty-state"><i class="fas fa-crown"></i><br>No brands yet. Add your first brand!</p>
+                    </div>
+                </div>
+
                 <!-- Billing & Usage Page -->
                 <div id="page-billing" class="page">
                     <div class="page-header">
@@ -1096,10 +1159,27 @@
         <p>Processing...</p>
     </div>
 
+    <!-- Download Progress Modal -->
+    <div id="download-modal" class="modal-overlay hidden">
+        <div class="modal-content download-modal">
+            <div class="modal-header">
+                <i class="fas fa-download"></i>
+                <h3>Downloading Media</h3>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div id="download-progress-bar" class="progress-fill"></div>
+                </div>
+                <p id="download-progress-text">Preparing download... 0%</p>
+            </div>
+            <p id="download-status" class="download-status">Fetching images...</p>
+        </div>
+    </div>
+
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/admin.js?v=2"></script>
+    <script src="js/admin.js?v=3"></script>
 </body>
 
 </html>

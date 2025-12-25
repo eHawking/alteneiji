@@ -197,6 +197,9 @@ async function loadPageData(pageId) {
         case 'media':
             await loadMediaLibrary();
             break;
+        case 'brands':
+            await loadBrands();
+            break;
     }
 }
 
@@ -377,8 +380,8 @@ async function generateSocialPosts() {
         `;
     });
 
-    // Generate content for each platform individually
-    for (const platform of platforms) {
+    // Generate content for all platforms IN PARALLEL
+    const generatePromises = platforms.map(async (platform) => {
         const card = document.getElementById(`post-card-${platform}`);
         let progress = 0;
 
@@ -463,6 +466,8 @@ async function generateSocialPosts() {
                 console.error('Failed to save post:', saveErr);
             }
 
+            return { platform, success: true };
+
         } catch (error) {
             clearInterval(progressInterval);
             card.classList.remove('generating');
@@ -470,8 +475,12 @@ async function generateSocialPosts() {
             card.querySelector('.post-status').innerHTML = '<i class="fas fa-exclamation-circle"></i> Error';
             card.querySelector('.post-text').textContent = error.message || 'Generation failed';
             console.error(`Failed to generate ${platform}:`, error);
+            return { platform, success: false, error };
         }
-    }
+    });
+
+    // Wait for ALL platforms to complete
+    await Promise.all(generatePromises);
 
     // Refresh history after all done
     await loadPostsHistory();
@@ -1827,12 +1836,321 @@ window.downloadFile = downloadFile;
 window.autoSavePost = autoSavePost;
 window.regeneratePostImage = regeneratePostImage;
 window.deletePost = deletePost;
-window.downloadAllMedia = function () {
-    showToast('Preparing download...', 'info');
-    // Simple implementation - open each in new tab
-    const images = document.querySelectorAll('#media-grid .media-item img');
-    images.forEach((img, i) => {
-        setTimeout(() => downloadFile(img.src, `image-${i + 1}.png`), i * 500);
-    });
+window.downloadAllMedia = async function () {
+    const modal = document.getElementById('download-modal');
+    const progressBar = document.getElementById('download-progress-bar');
+    const progressText = document.getElementById('download-progress-text');
+    const statusText = document.getElementById('download-status');
+
+    // Check if JSZip is available
+    if (typeof JSZip === 'undefined') {
+        showToast('ZIP library not loaded. Downloading individual files...', 'warning');
+        const images = document.querySelectorAll('#media-grid .media-item img');
+        images.forEach((img, i) => {
+            setTimeout(() => downloadFile(img.src, `image-${i + 1}.png`), i * 500);
+        });
+        return;
+    }
+
+    try {
+        // Show modal
+        modal.classList.remove('hidden');
+        progressBar.style.width = '0%';
+        progressText.textContent = 'Preparing download... 0%';
+        statusText.textContent = 'Fetching image list...';
+
+        // Get all posts with images
+        const response = await apiRequest('/social/posts');
+        const posts = response.data || [];
+
+        // Extract unique images
+        const images = [];
+        const seenUrls = new Set();
+        posts.forEach(post => {
+            if (post.image_url && !seenUrls.has(post.image_url)) {
+                seenUrls.add(post.image_url);
+                images.push({
+                    url: post.image_url,
+                    name: `${post.platform}-${new Date(post.created_at).toLocaleDateString().replace(/\//g, '-')}.png`,
+                    platform: post.platform
+                });
+            }
+        });
+
+        if (images.length === 0) {
+            modal.classList.add('hidden');
+            showToast('No images to download', 'warning');
+            return;
+        }
+
+        statusText.textContent = `Found ${images.length} images. Creating ZIP...`;
+        const zip = new JSZip();
+        const folder = zip.folder('social-media-images');
+
+        let completed = 0;
+
+        // Download and add each image to ZIP
+        for (const img of images) {
+            try {
+                statusText.textContent = `Downloading: ${img.name}`;
+
+                const imgResponse = await fetch(img.url);
+                if (!imgResponse.ok) throw new Error('Fetch failed');
+                const blob = await imgResponse.blob();
+
+                // Generate unique filename
+                const fileName = `${img.platform}-${Date.now()}-${completed + 1}.png`;
+                folder.file(fileName, blob);
+
+                completed++;
+                const percent = Math.round((completed / images.length) * 100);
+                progressBar.style.width = `${percent}%`;
+                progressText.textContent = `${percent}%`;
+            } catch (err) {
+                console.warn(`Failed to fetch ${img.url}:`, err);
+                completed++;
+            }
+        }
+
+        statusText.textContent = 'Generating ZIP file...';
+        progressText.textContent = '100%';
+        progressBar.style.width = '100%';
+
+        // Generate ZIP
+        const content = await zip.generateAsync({ type: 'blob' }, (metadata) => {
+            const percent = Math.round(metadata.percent);
+            statusText.textContent = `Compressing... ${percent}%`;
+        });
+
+        // Trigger download
+        const url = URL.createObjectURL(content);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `social-media-images-${new Date().toISOString().split('T')[0]}.zip`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        modal.classList.add('hidden');
+        showToast(`Downloaded ${completed} images as ZIP!`, 'success');
+    } catch (error) {
+        console.error('ZIP download failed:', error);
+        modal.classList.add('hidden');
+        showToast('Download failed: ' + error.message, 'error');
+    }
 };
 
+// Voice Input - Speech to Text
+let recognition = null;
+let isListening = false;
+
+window.toggleVoiceInput = function (btn) {
+    // Check for browser support
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        showToast('Voice input not supported in this browser. Try Chrome or Edge.', 'error');
+        return;
+    }
+
+    const topicInput = document.getElementById('social-topic');
+    if (!topicInput) return;
+
+    if (isListening) {
+        // Stop listening
+        if (recognition) {
+            recognition.stop();
+        }
+        isListening = false;
+        btn.classList.remove('active');
+        btn.innerHTML = '<i class="fas fa-microphone"></i>';
+        showToast('Voice input stopped', 'info');
+        return;
+    }
+
+    // Start listening
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = navigator.language || 'en-US';
+
+    recognition.onstart = function () {
+        isListening = true;
+        btn.classList.add('active');
+        btn.innerHTML = '<i class="fas fa-microphone-alt" style="color: #ef4444;"></i>';
+        showToast('Listening... Speak your topic', 'info');
+    };
+
+    recognition.onresult = function (event) {
+        let finalTranscript = '';
+        let interimTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                finalTranscript += transcript;
+            } else {
+                interimTranscript += transcript;
+            }
+        }
+
+        // Update input with transcription
+        if (finalTranscript) {
+            topicInput.value = finalTranscript;
+        } else if (interimTranscript) {
+            topicInput.value = interimTranscript;
+        }
+    };
+
+    recognition.onerror = function (event) {
+        console.error('Speech recognition error:', event.error);
+        isListening = false;
+        btn.classList.remove('active');
+        btn.innerHTML = '<i class="fas fa-microphone"></i>';
+
+        if (event.error === 'no-speech') {
+            showToast('No speech detected. Try again.', 'warning');
+        } else if (event.error === 'not-allowed') {
+            showToast('Microphone access denied. Please allow microphone.', 'error');
+        } else {
+            showToast('Voice input error: ' + event.error, 'error');
+        }
+    };
+
+    recognition.onend = function () {
+        isListening = false;
+        btn.classList.remove('active');
+        btn.innerHTML = '<i class="fas fa-microphone"></i>';
+
+        if (topicInput.value.trim()) {
+            showToast('Voice input captured!', 'success');
+        }
+    };
+
+    recognition.start();
+};
+
+// =====================
+// BRAND MANAGEMENT
+// =====================
+
+let allBrands = [];
+
+async function loadBrands() {
+    const list = document.getElementById('brands-list');
+    if (!list) return;
+
+    try {
+        const response = await apiRequest('/brands');
+        allBrands = response.data || [];
+
+        if (allBrands.length === 0) {
+            list.innerHTML = '<p class="empty-state"><i class="fas fa-crown"></i><br>No brands yet. Add your first brand!</p>';
+            return;
+        }
+
+        list.innerHTML = allBrands.map(brand => `
+            <div class="brand-card">
+                <div class="brand-header">
+                    <div class="brand-icon"><i class="fas fa-crown"></i></div>
+                    <div class="brand-info">
+                        <h3>${brand.name}</h3>
+                        ${brand.website ? `<a href="${brand.website}" target="_blank">${brand.website}</a>` : ''}
+                    </div>
+                </div>
+                ${brand.about ? `<p class="brand-about">${brand.about.substring(0, 150)}${brand.about.length > 150 ? '...' : ''}</p>` : ''}
+                <div class="brand-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="editBrand(${brand.id})">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-ghost btn-sm" onclick="deleteBrand(${brand.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        list.innerHTML = '<p class="empty-state"><i class="fas fa-exclamation-triangle"></i><br>Failed to load brands</p>';
+        console.error('Failed to load brands:', error);
+    }
+}
+
+function showBrandForm(brand = null) {
+    const formCard = document.getElementById('brand-form-card');
+    const formTitle = document.getElementById('brand-form-title');
+    formCard.classList.remove('hidden');
+
+    if (brand) {
+        formTitle.textContent = 'Edit Brand';
+        document.getElementById('brand-id').value = brand.id;
+        document.getElementById('brand-name').value = brand.name || '';
+        document.getElementById('brand-website').value = brand.website || '';
+        document.getElementById('brand-about').value = brand.about || '';
+    } else {
+        formTitle.textContent = 'Add New Brand';
+        document.getElementById('brand-form').reset();
+        document.getElementById('brand-id').value = '';
+    }
+}
+
+function hideBrandForm() {
+    document.getElementById('brand-form-card').classList.add('hidden');
+    document.getElementById('brand-form').reset();
+}
+
+async function saveBrand(event) {
+    event.preventDefault();
+
+    const id = document.getElementById('brand-id').value;
+    const data = {
+        name: document.getElementById('brand-name').value,
+        website: document.getElementById('brand-website').value || null,
+        about: document.getElementById('brand-about').value || null
+    };
+
+    try {
+        if (id) {
+            await apiRequest(`/brands/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(data)
+            });
+            showToast('Brand updated!', 'success');
+        } else {
+            await apiRequest('/brands', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            showToast('Brand created!', 'success');
+        }
+
+        hideBrandForm();
+        await loadBrands();
+    } catch (error) {
+        showToast('Failed to save brand: ' + error.message, 'error');
+    }
+}
+
+function editBrand(id) {
+    const brand = allBrands.find(b => b.id === id);
+    if (brand) {
+        showBrandForm(brand);
+    }
+}
+
+async function deleteBrand(id) {
+    if (!confirm('Delete this brand?')) return;
+
+    try {
+        await apiRequest(`/brands/${id}`, { method: 'DELETE' });
+        showToast('Brand deleted!', 'success');
+        await loadBrands();
+    } catch (error) {
+        showToast('Failed to delete brand: ' + error.message, 'error');
+    }
+}
+
+window.loadBrands = loadBrands;
+window.showBrandForm = showBrandForm;
+window.hideBrandForm = hideBrandForm;
+window.saveBrand = saveBrand;
+window.editBrand = editBrand;
+window.deleteBrand = deleteBrand;
