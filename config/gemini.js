@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
+import { query as dbQuery } from './database.js';
 
 dotenv.config();
 
@@ -460,8 +461,6 @@ const PRICING = {
  */
 export async function trackUsage(usage) {
     try {
-        const { query } = await import('./database.js');
-
         const modelPricing = PRICING[usage.model] || PRICING.default;
         const inputCost = (usage.inputTokens || 0) / 1000000 * modelPricing.input;
         const outputCost = (usage.outputTokens || 0) / 1000000 * modelPricing.output;
@@ -471,7 +470,17 @@ export async function trackUsage(usage) {
         const markupPercent = 50;
         const totalCost = baseCost * (1 + markupPercent / 100);
 
-        await query(
+        console.log('[BILLING] Tracking usage:', {
+            operation: usage.operation,
+            model: usage.model,
+            inputTokens: usage.inputTokens,
+            outputTokens: usage.outputTokens,
+            imagesGenerated: usage.imagesGenerated,
+            baseCost: baseCost.toFixed(6),
+            totalCost: totalCost.toFixed(6)
+        });
+
+        await dbQuery(
             `INSERT INTO api_usage (user_id, service, operation, model, input_tokens, output_tokens, 
              images_generated, base_cost, markup_percent, total_cost, response_summary) 
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -490,9 +499,11 @@ export async function trackUsage(usage) {
             ]
         );
 
+        console.log('[BILLING] Usage tracked successfully');
         return { baseCost, totalCost, markupPercent };
     } catch (error) {
-        console.error('Failed to track usage:', error.message);
+        console.error('[BILLING ERROR] Failed to track usage:', error.message);
+        console.error('[BILLING ERROR] Stack:', error.stack);
         return null;
     }
 }
