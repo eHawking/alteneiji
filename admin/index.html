@@ -336,31 +336,48 @@
                                         title="Voice Input - Speak your topic">
                                         <i class="fas fa-microphone"></i>
                                     </button>
-                                    <!-- Logo -->
-                                    <button class="tool-btn" id="tool-logo"
-                                        onclick="document.getElementById('logo-input').click()"
-                                        title="Add Logo Branding">
+                                    <!-- Brand Selector -->
+                                    <button class="tool-btn" id="tool-brand" onclick="showBrandModal()"
+                                        title="Select Brand">
                                         <i class="fas fa-crown"></i>
                                     </button>
-                                    <input type="file" id="logo-input" accept="image/*" style="display:none"
-                                        onchange="handleLogoUpload(this)">
+                                    <span id="selected-brand-name" class="selected-brand-badge"
+                                        style="display:none;"></span>
 
                                     <div class="toolbar-divider"></div>
 
-                                    <!-- Tone Selector -->
-                                    <select id="social-tone" class="tone-select" title="Tone">
-                                        <option value="professional">🎯 Professional</option>
-                                        <option value="casual">😊 Casual</option>
-                                        <option value="enthusiastic">🔥 Enthusiastic</option>
-                                        <option value="formal">📋 Formal</option>
-                                    </select>
+                                    <!-- Tone Selector - Redesigned -->
+                                    <div class="tone-dropdown">
+                                        <button class="tone-dropdown-btn" onclick="toggleToneDropdown(this)">
+                                            <i class="fas fa-sliders-h"></i>
+                                            <span id="selected-tone-text">Professional</span>
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                        <div class="tone-dropdown-menu">
+                                            <div class="tone-option"
+                                                onclick="selectTone('professional', 'Professional', this)">
+                                                <i class="fas fa-bullseye"></i> Professional
+                                            </div>
+                                            <div class="tone-option" onclick="selectTone('casual', 'Casual', this)">
+                                                <i class="fas fa-smile"></i> Casual
+                                            </div>
+                                            <div class="tone-option"
+                                                onclick="selectTone('enthusiastic', 'Enthusiastic', this)">
+                                                <i class="fas fa-fire"></i> Enthusiastic
+                                            </div>
+                                            <div class="tone-option" onclick="selectTone('formal', 'Formal', this)">
+                                                <i class="fas fa-file-alt"></i> Formal
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Hidden Checkboxes -->
+                                <input type="hidden" id="social-tone" value="professional">
+                                <input type="hidden" id="selected-brand-id" value="">
                                 <input type="checkbox" id="generate-images" checked style="display:none">
                                 <input type="checkbox" id="enable-voice" style="display:none">
                                 <input type="checkbox" id="attach-custom-image" style="display:none">
-                                <input type="checkbox" id="add-logo" style="display:none">
                             </div>
                         </div>
 
@@ -1206,10 +1223,78 @@
         </div>
     </div>
 
+    <!-- Brand Selection Modal -->
+    <div id="brand-modal" class="modal-overlay hidden" onclick="closeBrandModal(event)">
+        <div class="modal-content brand-modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <i class="fas fa-crown"></i>
+                <h3>Select Brand</h3>
+                <button class="modal-close" onclick="closeBrandModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="brand-modal-list" class="brand-modal-grid">
+                    <p class="empty-state"><i class="fas fa-spinner fa-spin"></i><br>Loading brands...</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="clearSelectedBrand()">
+                        <i class="fas fa-times"></i> Clear Selection
+                    </button>
+                    <button class="btn btn-primary" onclick="closeBrandModal()">
+                        <i class="fas fa-check"></i> Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Viewer Modal with Zoom -->
+    <div id="image-viewer-modal" class="modal-overlay hidden" onclick="closeImageViewer()">
+        <div class="image-viewer-content" onclick="event.stopPropagation()">
+            <div class="image-viewer-toolbar">
+                <button onclick="zoomImage(-0.25)" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                <span id="zoom-level">100%</span>
+                <button onclick="zoomImage(0.25)" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+                <button onclick="resetZoom()" title="Reset"><i class="fas fa-undo"></i></button>
+                <button onclick="closeImageViewer()" title="Close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="image-viewer-container">
+                <img id="viewer-image" src="" alt="Preview" draggable="false">
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Edit Modal -->
+    <div id="image-edit-modal" class="modal-overlay hidden" onclick="closeImageEdit()">
+        <div class="modal-content image-edit-modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <i class="fas fa-edit"></i>
+                <h3>Edit Image</h3>
+                <button class="modal-close" onclick="closeImageEdit()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="edit-image-preview">
+                    <img id="edit-image-preview" src="" alt="Edit Preview">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-magic"></i> Edit Prompt</label>
+                    <textarea id="edit-image-prompt" rows="3"
+                        placeholder="Describe what you want to change in the image..."></textarea>
+                    <small class="form-hint">e.g., "Make the background more vibrant", "Add a sunset effect"</small>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeImageEdit()">Cancel</button>
+                    <button class="btn btn-primary" onclick="applyImageEdit()">
+                        <i class="fas fa-wand-magic-sparkles"></i> Apply Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/admin.js?v=5"></script>
+    <script src="js/admin.js?v=6"></script>
 </body>
 
 </html>

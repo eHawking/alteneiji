@@ -2325,3 +2325,183 @@ window.deleteBrand = deleteBrand;
 window.confirmDeleteBrand = confirmDeleteBrand;
 window.previewBrandLogo = previewBrandLogo;
 window.fetchWebsiteInfo = fetchWebsiteInfo;
+
+// =====================
+// TONE DROPDOWN
+// =====================
+
+function toggleToneDropdown(btn) {
+    const dropdown = btn.closest('.tone-dropdown');
+    dropdown.classList.toggle('open');
+
+    // Close when clicking outside
+    setTimeout(() => {
+        document.addEventListener('click', function closeDropdown(e) {
+            if (!dropdown.contains(e.target)) {
+                dropdown.classList.remove('open');
+                document.removeEventListener('click', closeDropdown);
+            }
+        });
+    }, 10);
+}
+
+function selectTone(value, text, element) {
+    document.getElementById('social-tone').value = value;
+    document.getElementById('selected-tone-text').textContent = text;
+
+    // Update active state
+    document.querySelectorAll('.tone-option').forEach(opt => opt.classList.remove('active'));
+    element.classList.add('active');
+
+    // Close dropdown
+    element.closest('.tone-dropdown').classList.remove('open');
+}
+
+window.toggleToneDropdown = toggleToneDropdown;
+window.selectTone = selectTone;
+
+// =====================
+// BRAND SELECTOR MODAL
+// =====================
+
+async function showBrandModal() {
+    const modal = document.getElementById('brand-modal');
+    const list = document.getElementById('brand-modal-list');
+    modal.classList.remove('hidden');
+
+    // Load brands
+    try {
+        const response = await apiRequest('/brands');
+        const brands = response.data || [];
+
+        if (brands.length === 0) {
+            list.innerHTML = `
+                <p class="empty-state">
+                    <i class="fas fa-crown"></i><br>
+                    No brands yet.<br>
+                    <a href="#brands" onclick="closeBrandModal(); navigateToPage('brands');">Create a brand first</a>
+                </p>`;
+            return;
+        }
+
+        const selectedId = document.getElementById('selected-brand-id').value;
+
+        list.innerHTML = brands.map(brand => `
+            <div class="brand-select-item ${brand.id == selectedId ? 'selected' : ''}" 
+                 onclick="selectBrandForPost(${brand.id}, '${brand.name.replace(/'/g, "\\'")}')">
+                <div class="brand-icon"><i class="fas fa-crown"></i></div>
+                <span class="brand-name">${brand.name}</span>
+                <i class="fas fa-check brand-check"></i>
+            </div>
+        `).join('');
+    } catch (error) {
+        list.innerHTML = '<p class="empty-state"><i class="fas fa-exclamation-triangle"></i><br>Failed to load brands</p>';
+    }
+}
+
+function closeBrandModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById('brand-modal').classList.add('hidden');
+}
+
+function selectBrandForPost(id, name) {
+    document.getElementById('selected-brand-id').value = id;
+    document.getElementById('selected-brand-name').textContent = name;
+    document.getElementById('selected-brand-name').style.display = 'inline-flex';
+
+    // Update selection UI
+    document.querySelectorAll('.brand-select-item').forEach(item => item.classList.remove('selected'));
+    event.target.closest('.brand-select-item').classList.add('selected');
+}
+
+function clearSelectedBrand() {
+    document.getElementById('selected-brand-id').value = '';
+    document.getElementById('selected-brand-name').style.display = 'none';
+    document.querySelectorAll('.brand-select-item').forEach(item => item.classList.remove('selected'));
+}
+
+window.showBrandModal = showBrandModal;
+window.closeBrandModal = closeBrandModal;
+window.selectBrandForPost = selectBrandForPost;
+window.clearSelectedBrand = clearSelectedBrand;
+
+// =====================
+// IMAGE VIEWER WITH ZOOM
+// =====================
+
+let currentZoom = 1;
+
+function openImageViewer(url) {
+    const modal = document.getElementById('image-viewer-modal');
+    const img = document.getElementById('viewer-image');
+
+    currentZoom = 1;
+    img.src = url;
+    img.style.transform = `scale(${currentZoom})`;
+    document.getElementById('zoom-level').textContent = '100%';
+
+    modal.classList.remove('hidden');
+}
+
+function closeImageViewer() {
+    document.getElementById('image-viewer-modal').classList.add('hidden');
+}
+
+function zoomImage(delta) {
+    currentZoom = Math.max(0.25, Math.min(3, currentZoom + delta));
+    document.getElementById('viewer-image').style.transform = `scale(${currentZoom})`;
+    document.getElementById('zoom-level').textContent = `${Math.round(currentZoom * 100)}%`;
+}
+
+function resetZoom() {
+    currentZoom = 1;
+    document.getElementById('viewer-image').style.transform = `scale(1)`;
+    document.getElementById('zoom-level').textContent = '100%';
+}
+
+window.openImageViewer = openImageViewer;
+window.closeImageViewer = closeImageViewer;
+window.zoomImage = zoomImage;
+window.resetZoom = resetZoom;
+
+// =====================
+// IMAGE EDIT MODAL
+// =====================
+
+let currentEditImageUrl = '';
+
+function openImageEdit(url) {
+    const modal = document.getElementById('image-edit-modal');
+    const preview = document.getElementById('edit-image-preview');
+
+    currentEditImageUrl = url;
+    preview.src = url;
+    document.getElementById('edit-image-prompt').value = '';
+
+    modal.classList.remove('hidden');
+}
+
+function closeImageEdit() {
+    document.getElementById('image-edit-modal').classList.add('hidden');
+}
+
+async function applyImageEdit() {
+    const prompt = document.getElementById('edit-image-prompt').value.trim();
+
+    if (!prompt) {
+        showToast('Please enter an edit prompt', 'warning');
+        return;
+    }
+
+    showToast('Image editing not yet implemented. Coming soon!', 'info');
+    closeImageEdit();
+}
+
+window.openImageEdit = openImageEdit;
+window.closeImageEdit = closeImageEdit;
+window.applyImageEdit = applyImageEdit;
+
+// Update showImagePreview to use new viewer
+window.showImagePreview = function (url) {
+    openImageViewer(url);
+};
