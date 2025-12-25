@@ -235,6 +235,18 @@ router.post('/social/generate',
             }
         }
 
+        // Track usage for billing
+        const imageCount = Object.values(posts).filter(p => p.imageUrl).length;
+        await gemini.trackUsage({
+            userId: req.user?.id,
+            operation: 'social_post_generation',
+            model: 'gemini-2.0-flash',
+            inputTokens: topic.length * 4,
+            outputTokens: 500,
+            imagesGenerated: imageCount,
+            summary: `Generated ${Object.keys(posts).length} posts for: ${topic.substring(0, 30)}`
+        });
+
         res.json({
             success: true,
             data: posts
@@ -312,6 +324,17 @@ router.post('/social/generate-single',
                 console.error(`Image generation failed:`, imgError.message);
             }
         }
+
+        // Track usage for billing
+        await gemini.trackUsage({
+            userId: req.user?.id,
+            operation: 'social_post_single',
+            model: 'gemini-2.0-flash',
+            inputTokens: topic.length * 4,
+            outputTokens: 200,
+            imagesGenerated: data.imageUrl ? 1 : 0,
+            summary: `Generated ${platform} post for: ${topic.substring(0, 30)}`
+        });
 
         res.json({
             success: true,
