@@ -2455,6 +2455,123 @@ document.addEventListener('DOMContentLoaded', () => {
 window.toggleUniversalPost = toggleUniversalPost;
 
 // =====================
+// MULTI-IMAGE ATTACHMENT
+// =====================
+
+// Store attached images as base64 data
+let attachedImages = [];
+const MAX_IMAGES = 5;
+
+function handleMultiImageAttach(input) {
+    const files = Array.from(input.files);
+
+    if (attachedImages.length + files.length > MAX_IMAGES) {
+        showToast(`Maximum ${MAX_IMAGES} images allowed`, 'warning');
+        input.value = '';
+        return;
+    }
+
+    files.forEach(file => {
+        if (!file.type.startsWith('image/')) {
+            showToast('Please select only image files', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            attachedImages.push({
+                data: e.target.result,
+                name: file.name,
+                type: file.type
+            });
+            renderAttachedImages();
+            updateAttachCount();
+        };
+        reader.readAsDataURL(file);
+    });
+
+    input.value = ''; // Reset input
+}
+
+function renderAttachedImages() {
+    const gallery = document.getElementById('attached-images-gallery');
+    const grid = document.getElementById('attached-images-grid');
+
+    if (attachedImages.length === 0) {
+        gallery.classList.add('hidden');
+        return;
+    }
+
+    gallery.classList.remove('hidden');
+    grid.innerHTML = attachedImages.map((img, index) => `
+        <div class="attached-image-thumb" onclick="openImagePreview('${img.data.replace(/'/g, "\\'")}')">
+            <img src="${img.data}" alt="${img.name}">
+            <button class="remove-btn" onclick="event.stopPropagation(); removeAttachedImageByIndex(${index})">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+function removeAttachedImageByIndex(index) {
+    attachedImages.splice(index, 1);
+    renderAttachedImages();
+    updateAttachCount();
+}
+
+function clearAllAttachedImages() {
+    attachedImages = [];
+    renderAttachedImages();
+    updateAttachCount();
+    showToast('All images cleared', 'info');
+}
+
+function updateAttachCount() {
+    const countBadge = document.getElementById('attach-count');
+    const attachBtn = document.getElementById('tool-attach');
+
+    if (attachedImages.length > 0) {
+        countBadge.textContent = attachedImages.length;
+        countBadge.classList.remove('hidden');
+        attachBtn.classList.add('active');
+    } else {
+        countBadge.classList.add('hidden');
+        attachBtn.classList.remove('active');
+    }
+}
+
+function openImagePreview(imageSrc) {
+    const modal = document.getElementById('image-preview-modal');
+    const img = document.getElementById('preview-modal-image');
+    img.src = imageSrc;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImagePreview() {
+    const modal = document.getElementById('image-preview-modal');
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+// Close preview on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeImagePreview();
+    }
+});
+
+// Expose functions globally
+window.handleMultiImageAttach = handleMultiImageAttach;
+window.removeAttachedImageByIndex = removeAttachedImageByIndex;
+window.clearAllAttachedImages = clearAllAttachedImages;
+window.openImagePreview = openImagePreview;
+window.closeImagePreview = closeImagePreview;
+
+// Export attachedImages for use in generation
+window.getAttachedImages = () => attachedImages;
+
+// =====================
 // VIDEO DROPDOWN FUNCTIONS  
 // =====================
 

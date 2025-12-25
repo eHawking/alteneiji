@@ -17,7 +17,7 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 
-    <link rel="stylesheet" href="css/admin.css?v=20">
+    <link rel="stylesheet" href="css/admin.css?v=21">
 
     <!-- JSZip for media download -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -299,21 +299,7 @@
                         <!-- Main Input Area -->
                         <div class="composer-input-area">
                             <textarea id="social-topic" rows="4"
-                                placeholder="What would you like to promote today? Describe your product, event, or message..."></textarea>
-
-                            <!-- Attached Files Preview -->
-                            <div id="attached-files-row" class="attached-files-row hidden">
-                                <div id="attached-image-preview" class="file-chip hidden">
-                                    <img id="attached-image-src" src="" alt="">
-                                    <span>Custom Image</span>
-                                    <button onclick="removeAttachedImage()"><i class="fas fa-times"></i></button>
-                                </div>
-                                <div id="logo-preview" class="file-chip hidden">
-                                    <img id="logo-src" src="" alt="">
-                                    <span>Logo</span>
-                                    <button onclick="removeLogo()"><i class="fas fa-times"></i></button>
-                                </div>
-                            </div>
+                                placeholder="Describe what you want to promote, or describe how you want to edit/use the attached images..."></textarea>
 
                             <!-- Toolbar -->
                             <div class="composer-toolbar">
@@ -326,11 +312,12 @@
                                     <!-- Attach Image -->
                                     <button class="tool-btn" id="tool-attach"
                                         onclick="document.getElementById('attach-image-input').click()"
-                                        title="Attach Custom Image">
+                                        title="Attach Images (max 5)">
                                         <i class="fas fa-paperclip"></i>
+                                        <span id="attach-count" class="attach-count hidden">0</span>
                                     </button>
-                                    <input type="file" id="attach-image-input" accept="image/*" style="display:none"
-                                        onchange="handleImageAttach(this)">
+                                    <input type="file" id="attach-image-input" accept="image/*" multiple
+                                        style="display:none" onchange="handleMultiImageAttach(this)">
                                     <!-- Voice Input -->
                                     <button class="tool-btn" id="tool-voice" onclick="toggleVoiceInput(this)"
                                         title="Voice Input - Speak your topic">
@@ -378,6 +365,21 @@
                                 <input type="checkbox" id="generate-images" checked style="display:none">
                                 <input type="checkbox" id="enable-voice" style="display:none">
                                 <input type="checkbox" id="attach-custom-image" style="display:none">
+                            </div>
+
+                            <!-- Attached Images Gallery (shown after tone dropdown) -->
+                            <div id="attached-images-gallery" class="attached-images-gallery hidden">
+                                <div class="gallery-header">
+                                    <span><i class="fas fa-images"></i> Attached Images</span>
+                                    <button class="btn-clear-all" onclick="clearAllAttachedImages()">
+                                        <i class="fas fa-trash-alt"></i> Clear All
+                                    </button>
+                                </div>
+                                <div id="attached-images-grid" class="attached-images-grid">
+                                    <!-- Images will be added here dynamically -->
+                                </div>
+                                <p class="gallery-hint"><i class="fas fa-lightbulb"></i> Click image to preview • AI
+                                    will use these images with your prompt</p>
                             </div>
                         </div>
 
@@ -1388,10 +1390,20 @@
         </div>
     </div>
 
+    <!-- Image Preview Modal -->
+    <div id="image-preview-modal" class="image-preview-modal hidden" onclick="closeImagePreview()">
+        <div class="image-preview-content" onclick="event.stopPropagation()">
+            <button class="preview-close-btn" onclick="closeImagePreview()">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="preview-modal-image" src="" alt="Preview">
+        </div>
+    </div>
+
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/admin.js?v=20"></script>
+    <script src="js/admin.js?v=21"></script>
 </body>
 
 </html>
