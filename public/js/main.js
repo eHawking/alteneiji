@@ -110,42 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Gulfood form submission
-    const gulfoodForm = document.getElementById('gulfood-form');
-    gulfoodForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const formData = new FormData(gulfoodForm);
-        const data = Object.fromEntries(formData.entries());
-
-        const submitBtn = gulfoodForm.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
-        submitBtn.disabled = true;
-
-        try {
-            const response = await fetch('/api/gulfood/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                showModal('Thank you for registering! We will contact you with Gulfood 2026 details soon.');
-                gulfoodForm.reset();
-            } else {
-                throw new Error(result.error || 'Failed to register');
-            }
-        } catch (error) {
-            showModal('Sorry, there was an error with your registration. Please try again or contact us directly.');
-        } finally {
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        }
-    });
-
     // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
@@ -175,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, observerOptions);
 
     // Observe elements for animation
-    document.querySelectorAll('.service-card, .product-card, .feature-item, .gulfood-feature, .contact-item').forEach(el => {
+    document.querySelectorAll('.service-card, .product-card, .feature-item, .contact-item').forEach(el => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(30px)';
         el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
