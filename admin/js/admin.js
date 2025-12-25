@@ -2587,6 +2587,29 @@ async function clearAllCache() {
 window.clearAllCache = clearAllCache;
 
 // =====================
+// IMAGE VIEWER
+// =====================
+
+function openImageViewer(imageUrl) {
+    const modal = document.getElementById('image-viewer-modal');
+    const img = document.getElementById('viewer-image');
+    if (modal && img) {
+        img.src = imageUrl;
+        modal.classList.remove('hidden');
+    }
+}
+
+function closeImageViewer() {
+    const modal = document.getElementById('image-viewer-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+window.openImageViewer = openImageViewer;
+window.closeImageViewer = closeImageViewer;
+
+// =====================
 // REGENERATE POPUP
 // =====================
 
