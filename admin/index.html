@@ -698,6 +698,82 @@
                     </div>
                 </div>
 
+                <!-- Billing & Usage Page -->
+                <div id="page-billing" class="page">
+                    <div class="page-header">
+                        <h3>Billing & Usage</h3>
+                        <div class="header-actions">
+                            <select id="billing-period" onchange="loadBillingData()">
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month" selected>This Month</option>
+                                <option value="all">All Time</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon blue"><i class="fas fa-server"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="billing-requests">0</span>
+                                <span class="stat-label">API Requests</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green"><i class="fas fa-image"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="billing-images">0</span>
+                                <span class="stat-label">Images Generated</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon purple"><i class="fas fa-coins"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="billing-cost">$0.00</span>
+                                <span class="stat-label">API Cost</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon orange"><i class="fas fa-file-invoice-dollar"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="billing-total">$0.00</span>
+                                <span class="stat-label">Total Billed</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Token Usage</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="billing-tokens">
+                                    <div class="token-stat">
+                                        <span class="token-label">Input Tokens</span>
+                                        <span class="token-value" id="billing-input-tokens">0</span>
+                                    </div>
+                                    <div class="token-stat">
+                                        <span class="token-label">Output Tokens</span>
+                                        <span class="token-value" id="billing-output-tokens">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Recent API Activity</h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="billing-activity" class="list-container">
+                                    <p class="empty-state">No recent activity</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Settings Page -->
                 <div id="page-settings" class="page">
                     <div class="page-header">
@@ -1278,7 +1354,7 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/admin.js?v=14"></script>
+    <script src="js/admin.js?v=15"></script>
 </body>
 
 </html>

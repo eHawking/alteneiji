@@ -74,6 +74,52 @@ function formatDate(dateString) {
 }
 
 // =====================
+// BILLING & USAGE
+// =====================
+
+async function loadBillingData() {
+    const period = document.getElementById('billing-period')?.value || 'month';
+
+    try {
+        const response = await apiRequest(`/admin/billing?period=${period}`);
+        const data = response.data;
+
+        // Update stat cards
+        document.getElementById('billing-requests').textContent = data.summary.totalRequests || 0;
+        document.getElementById('billing-images').textContent = data.summary.totalImages || 0;
+        document.getElementById('billing-cost').textContent = `$${(data.summary.baseCost || 0).toFixed(4)}`;
+        document.getElementById('billing-total').textContent = `$${(data.summary.totalBilled || 0).toFixed(4)}`;
+
+        // Update token usage
+        document.getElementById('billing-input-tokens').textContent = (data.summary.totalInputTokens || 0).toLocaleString();
+        document.getElementById('billing-output-tokens').textContent = (data.summary.totalOutputTokens || 0).toLocaleString();
+
+        // Update recent activity
+        const activityContainer = document.getElementById('billing-activity');
+        if (data.recentActivity && data.recentActivity.length > 0) {
+            activityContainer.innerHTML = data.recentActivity.map(item => `
+                <div class="list-item">
+                    <div class="list-item-info">
+                        <span class="list-item-title">${item.operation || 'API Call'}</span>
+                        <span class="list-item-subtitle">${item.model || 'gemini'} - ${formatDate(item.created_at)}</span>
+                    </div>
+                    <span class="list-item-value">$${(parseFloat(item.total_cost) || 0).toFixed(4)}</span>
+                </div>
+            `).join('');
+        } else {
+            activityContainer.innerHTML = '<p class="empty-state">No recent activity</p>';
+        }
+
+    } catch (error) {
+        console.error('Failed to load billing data:', error);
+        showToast('Failed to load billing data', 'error');
+    }
+}
+
+// Make loadBillingData globally accessible
+window.loadBillingData = loadBillingData;
+
+// =====================
 // AUTHENTICATION
 // =====================
 
@@ -2812,3 +2858,27 @@ async function applyLiveEdit() {
 window.openImageEditModal = openImageEditModal;
 window.closeImageEditModal = closeImageEditModal;
 window.applyLiveEdit = applyLiveEdit;
+
+// =====================
+// BILLING PAGE OBSERVER
+// =====================
+
+// Auto-load billing data when billing page becomes active
+const billingPageObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+            const billingPage = document.getElementById('page-billing');
+            if (billingPage && billingPage.classList.contains('active')) {
+                loadBillingData();
+            }
+        }
+    });
+});
+
+// Start observing once DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    const billingPage = document.getElementById('page-billing');
+    if (billingPage) {
+        billingPageObserver.observe(billingPage, { attributes: true });
+    }
+});
