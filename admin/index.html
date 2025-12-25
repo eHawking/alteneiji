@@ -150,28 +150,28 @@
                 <!-- Dashboard Page -->
                 <div id="page-dashboard" class="page active">
                     <div class="stats-grid">
-                        <div class="stat-card">
+                        <div class="stat-card clickable" onclick="navigateTo('pages')">
                             <div class="stat-icon blue"><i class="fas fa-file-alt"></i></div>
                             <div class="stat-info">
                                 <span class="stat-value" id="stat-pages">0</span>
                                 <span class="stat-label">Pages</span>
                             </div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card clickable" onclick="navigateTo('products')">
                             <div class="stat-icon green"><i class="fas fa-box"></i></div>
                             <div class="stat-info">
                                 <span class="stat-value" id="stat-products">0</span>
                                 <span class="stat-label">Products</span>
                             </div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card clickable" onclick="navigateTo('services')">
                             <div class="stat-icon purple"><i class="fas fa-concierge-bell"></i></div>
                             <div class="stat-info">
                                 <span class="stat-value" id="stat-services">0</span>
                                 <span class="stat-label">Services</span>
                             </div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card clickable" onclick="navigateTo('contacts')">
                             <div class="stat-icon orange"><i class="fas fa-envelope"></i></div>
                             <div class="stat-info">
                                 <span class="stat-value" id="stat-contacts">0</span>
@@ -1278,7 +1278,7 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/admin.js?v=11"></script>
+    <script src="js/admin.js?v=12"></script>
 </body>
 
 </html>

@@ -3193,3 +3193,14 @@ body {
     gap: 10px;
     justify-content: flex-end;
 }
+
+/* Clickable Cards */
+.stat-card.clickable {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card.clickable:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+}
