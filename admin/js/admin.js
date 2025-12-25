@@ -74,52 +74,6 @@ function formatDate(dateString) {
 }
 
 // =====================
-// BILLING & USAGE
-// =====================
-
-async function loadBillingData() {
-    const period = document.getElementById('billing-period')?.value || 'month';
-
-    try {
-        const response = await apiRequest(`/admin/billing?period=${period}`);
-        const data = response.data;
-
-        // Update stat cards
-        document.getElementById('billing-requests').textContent = data.summary.totalRequests || 0;
-        document.getElementById('billing-images').textContent = data.summary.totalImages || 0;
-        document.getElementById('billing-cost').textContent = `$${(data.summary.baseCost || 0).toFixed(4)}`;
-        document.getElementById('billing-total').textContent = `$${(data.summary.totalBilled || 0).toFixed(4)}`;
-
-        // Update token usage
-        document.getElementById('billing-input-tokens').textContent = (data.summary.totalInputTokens || 0).toLocaleString();
-        document.getElementById('billing-output-tokens').textContent = (data.summary.totalOutputTokens || 0).toLocaleString();
-
-        // Update recent activity
-        const activityContainer = document.getElementById('billing-activity');
-        if (data.recentActivity && data.recentActivity.length > 0) {
-            activityContainer.innerHTML = data.recentActivity.map(item => `
-                <div class="list-item">
-                    <div class="list-item-info">
-                        <span class="list-item-title">${item.operation || 'API Call'}</span>
-                        <span class="list-item-subtitle">${item.model || 'gemini'} - ${formatDate(item.created_at)}</span>
-                    </div>
-                    <span class="list-item-value">$${(parseFloat(item.total_cost) || 0).toFixed(4)}</span>
-                </div>
-            `).join('');
-        } else {
-            activityContainer.innerHTML = '<p class="empty-state">No recent activity</p>';
-        }
-
-    } catch (error) {
-        console.error('Failed to load billing data:', error);
-        showToast('Failed to load billing data', 'error');
-    }
-}
-
-// Make loadBillingData globally accessible
-window.loadBillingData = loadBillingData;
-
-// =====================
 // AUTHENTICATION
 // =====================
 
@@ -2860,25 +2814,89 @@ window.closeImageEditModal = closeImageEditModal;
 window.applyLiveEdit = applyLiveEdit;
 
 // =====================
-// BILLING PAGE OBSERVER
+// BILLING & USAGE
 // =====================
 
-// Auto-load billing data when billing page becomes active
-const billingPageObserver = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-            const billingPage = document.getElementById('page-billing');
-            if (billingPage && billingPage.classList.contains('active')) {
-                loadBillingData();
-            }
-        }
-    });
-});
+async function loadBillingData() {
+    const period = document.getElementById('billing-period')?.value || 'month';
 
-// Start observing once DOM is loaded
+    try {
+        const response = await apiRequest(`/admin/billing?period=${period}`);
+        const data = response.data;
+
+        if (data && data.summary) {
+            // Update summary cards
+            document.getElementById('total-requests').textContent =
+                formatNumber(data.summary.totalRequests || 0);
+            document.getElementById('total-images').textContent =
+                formatNumber(data.summary.totalImages || 0);
+            document.getElementById('base-cost').textContent =
+                formatCurrency(data.summary.baseCost || 0);
+            document.getElementById('total-billed').textContent =
+                formatCurrency(data.summary.totalBilled || 0);
+
+            // Token usage
+            document.getElementById('input-tokens').textContent =
+                formatNumber(data.summary.totalInputTokens || 0);
+            document.getElementById('output-tokens').textContent =
+                formatNumber(data.summary.totalOutputTokens || 0);
+        }
+
+        // Update recent activity table
+        const table = document.getElementById('billing-table');
+        if (table && data.recentActivity) {
+            const tbody = table.querySelector('tbody') || table;
+            tbody.innerHTML = data.recentActivity.length > 0
+                ? data.recentActivity.map(item => `
+                    <tr>
+                        <td><span class="badge">${item.operation || '-'}</span></td>
+                        <td>${item.model || '-'}</td>
+                        <td>${formatCurrency(item.total_cost || 0)}</td>
+                        <td>${formatDateTime(item.created_at)}</td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="4" class="text-center">No recent activity</td></tr>';
+        }
+
+    } catch (error) {
+        console.error('Failed to load billing data:', error);
+        showToast('Failed to load billing data', 'error');
+    }
+}
+
+function formatNumber(num) {
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + 'M';
+    } else if (num >= 1000) {
+        return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
+}
+
+function formatCurrency(amount) {
+    return '$' + parseFloat(amount).toFixed(2);
+}
+
+function formatDateTime(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+// Add event listener for billing period change
 document.addEventListener('DOMContentLoaded', () => {
-    const billingPage = document.getElementById('page-billing');
-    if (billingPage) {
-        billingPageObserver.observe(billingPage, { attributes: true });
+    const billingPeriod = document.getElementById('billing-period');
+    if (billingPeriod) {
+        billingPeriod.addEventListener('change', () => {
+            loadBillingData();
+        });
     }
 });
+
+window.loadBillingData = loadBillingData;
+

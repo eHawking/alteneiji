@@ -698,82 +698,6 @@
                     </div>
                 </div>
 
-                <!-- Billing & Usage Page -->
-                <div id="page-billing" class="page">
-                    <div class="page-header">
-                        <h3>Billing & Usage</h3>
-                        <div class="header-actions">
-                            <select id="billing-period" onchange="loadBillingData()">
-                                <option value="today">Today</option>
-                                <option value="week">This Week</option>
-                                <option value="month" selected>This Month</option>
-                                <option value="all">All Time</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-icon blue"><i class="fas fa-server"></i></div>
-                            <div class="stat-info">
-                                <span class="stat-value" id="billing-requests">0</span>
-                                <span class="stat-label">API Requests</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon green"><i class="fas fa-image"></i></div>
-                            <div class="stat-info">
-                                <span class="stat-value" id="billing-images">0</span>
-                                <span class="stat-label">Images Generated</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon purple"><i class="fas fa-coins"></i></div>
-                            <div class="stat-info">
-                                <span class="stat-value" id="billing-cost">$0.00</span>
-                                <span class="stat-label">API Cost</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon orange"><i class="fas fa-file-invoice-dollar"></i></div>
-                            <div class="stat-info">
-                                <span class="stat-value" id="billing-total">$0.00</span>
-                                <span class="stat-label">Total Billed</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="dashboard-grid">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3>Token Usage</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="billing-tokens">
-                                    <div class="token-stat">
-                                        <span class="token-label">Input Tokens</span>
-                                        <span class="token-value" id="billing-input-tokens">0</span>
-                                    </div>
-                                    <div class="token-stat">
-                                        <span class="token-label">Output Tokens</span>
-                                        <span class="token-value" id="billing-output-tokens">0</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header">
-                                <h3>Recent API Activity</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="billing-activity" class="list-container">
-                                    <p class="empty-state">No recent activity</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Settings Page -->
                 <div id="page-settings" class="page">
                     <div class="page-header">
@@ -1172,8 +1096,12 @@
                 <!-- Billing & Usage Page -->
                 <div id="page-billing" class="page">
                     <div class="page-header">
-                        <h3>Billing & Usage</h3>
-                        <select id="billing-period" class="form-control" style="width: auto;">
+                        <div class="page-header-content">
+                            <h3><i class="fas fa-chart-bar"
+                                    style="color: var(--accent-gold); margin-right: 10px;"></i>Billing & Usage</h3>
+                            <p class="page-subtitle">Monitor your AI API usage and costs</p>
+                        </div>
+                        <select id="billing-period" class="form-control premium-select">
                             <option value="today">Today</option>
                             <option value="week">This Week</option>
                             <option value="month" selected>This Month</option>
@@ -1181,86 +1109,107 @@
                         </select>
                     </div>
 
-                    <!-- Billing Summary Cards -->
-                    <div class="stats-grid" style="margin-bottom: 20px;">
-                        <div class="stat-card">
-                            <div class="stat-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+                    <!-- Premium Billing Summary Cards -->
+                    <div class="billing-stats-grid">
+                        <div class="billing-card gradient-blue">
+                            <div class="billing-card-icon">
                                 <i class="fas fa-code"></i>
                             </div>
-                            <div class="stat-content">
-                                <span class="stat-value" id="total-requests">0</span>
-                                <span class="stat-label">API Requests</span>
+                            <div class="billing-card-content">
+                                <span class="billing-value" id="total-requests">0</span>
+                                <span class="billing-label">API Requests</span>
                             </div>
+                            <div class="billing-card-glow"></div>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-icon" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">
+
+                        <div class="billing-card gradient-purple">
+                            <div class="billing-card-icon">
                                 <i class="fas fa-image"></i>
                             </div>
-                            <div class="stat-content">
-                                <span class="stat-value" id="total-images">0</span>
-                                <span class="stat-label">Images Generated</span>
+                            <div class="billing-card-content">
+                                <span class="billing-value" id="total-images">0</span>
+                                <span class="billing-label">Images Generated</span>
                             </div>
+                            <div class="billing-card-glow"></div>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-icon" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+
+                        <div class="billing-card gradient-red">
+                            <div class="billing-card-icon">
                                 <i class="fas fa-coins"></i>
                             </div>
-                            <div class="stat-content">
-                                <span class="stat-value" id="base-cost">$0.00</span>
-                                <span class="stat-label">API Cost</span>
+                            <div class="billing-card-content">
+                                <span class="billing-value" id="base-cost">$0.00</span>
+                                <span class="billing-label">API Cost</span>
                             </div>
+                            <div class="billing-card-glow"></div>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-icon" style="background: linear-gradient(135deg, #f1c40f, #f39c12);">
+
+                        <div class="billing-card gradient-gold">
+                            <div class="billing-card-icon">
                                 <i class="fas fa-dollar-sign"></i>
                             </div>
-                            <div class="stat-content">
-                                <span class="stat-value" id="total-billed">$0.00</span>
-                                <span class="stat-label">Total Billed</span>
+                            <div class="billing-card-content">
+                                <span class="billing-value" id="total-billed">$0.00</span>
+                                <span class="billing-label">Total Billed</span>
+                            </div>
+                            <div class="billing-card-glow"></div>
+                        </div>
+                    </div>
+
+                    <!-- Token Usage Section -->
+                    <div class="card premium-card" style="margin-bottom: 20px;">
+                        <div class="card-header">
+                            <h4><i class="fas fa-microchip"
+                                    style="color: var(--accent-gold); margin-right: 8px;"></i>Token Usage</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="token-usage-grid">
+                                <div class="token-card">
+                                    <div class="token-icon input">
+                                        <i class="fas fa-arrow-right"></i>
+                                    </div>
+                                    <div class="token-info">
+                                        <span class="token-value" id="input-tokens">0</span>
+                                        <span class="token-label">Input Tokens</span>
+                                    </div>
+                                </div>
+                                <div class="token-card">
+                                    <div class="token-icon output">
+                                        <i class="fas fa-arrow-left"></i>
+                                    </div>
+                                    <div class="token-info">
+                                        <span class="token-value" id="output-tokens">0</span>
+                                        <span class="token-label">Output Tokens</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Token Usage -->
-                    <div class="card" style="margin-bottom: 20px;">
+                    <!-- Recent Activity Table -->
+                    <div class="card premium-card">
                         <div class="card-header">
-                            <h4>Token Usage</h4>
+                            <h4><i class="fas fa-history"
+                                    style="color: var(--accent-gold); margin-right: 8px;"></i>Recent API Activity</h4>
                         </div>
                         <div class="card-body">
-                            <div class="stats-grid">
-                                <div class="stat-card" style="background: var(--bg-tertiary);">
-                                    <div class="stat-content">
-                                        <span class="stat-value" id="input-tokens">0</span>
-                                        <span class="stat-label">Input Tokens</span>
-                                    </div>
-                                </div>
-                                <div class="stat-card" style="background: var(--bg-tertiary);">
-                                    <div class="stat-content">
-                                        <span class="stat-value" id="output-tokens">0</span>
-                                        <span class="stat-label">Output Tokens</span>
-                                    </div>
-                                </div>
+                            <div class="table-responsive">
+                                <table class="data-table premium-table" id="billing-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Operation</th>
+                                            <th>Model</th>
+                                            <th>Cost</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">Loading activity...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Recent Activity & Usage by Operation -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h4>Recent API Activity</h4>
-                        </div>
-                        <div class="card-body">
-                            <table class="data-table" id="billing-table">
-                                <thead>
-                                    <tr>
-                                        <th>Operation</th>
-                                        <th>Model</th>
-                                        <th>Cost</th>
-                                        <th>Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="recent-activity"></tbody>
-                            </table>
                         </div>
                     </div>
                 </div>

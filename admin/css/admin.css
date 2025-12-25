@@ -3505,68 +3505,297 @@ body {
 }
 
 /* =============================================
-   BILLING & USAGE PAGE STYLES
+   PREMIUM BILLING & USAGE STYLES
    ============================================= */
 
-.billing-tokens {
-    display: flex;
-    gap: 30px;
-    padding: 10px 0;
-}
-
-.token-stat {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.token-label {
-    color: var(--text-secondary);
-    font-size: 13px;
-}
-
-.token-value {
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.list-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.list-item:last-child {
-    border-bottom: none;
-}
-
-.list-item-info {
+.page-header-content {
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-.list-item-title {
+.page-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.premium-select {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 10px 35px 10px 15px;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23d4af37' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    min-width: 140px;
+}
+
+.premium-select:focus {
+    outline: none;
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+/* Billing Stats Grid */
+.billing-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+/* Premium Billing Cards */
+.billing-card {
+    position: relative;
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.billing-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.billing-card-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.billing-card.gradient-blue .billing-card-icon {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.billing-card.gradient-purple .billing-card-icon {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+}
+
+.billing-card.gradient-red .billing-card-icon {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+}
+
+.billing-card.gradient-gold .billing-card-icon {
+    background: linear-gradient(135deg, var(--accent-gold), #b8860b);
+}
+
+.billing-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.billing-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.billing-label {
+    font-size: 13px;
+    color: var(--text-secondary);
     font-weight: 500;
+}
+
+.billing-card-glow {
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+.billing-card.gradient-blue .billing-card-glow {
+    background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+}
+
+.billing-card.gradient-purple .billing-card-glow {
+    background: radial-gradient(circle, #8b5cf6 0%, transparent 70%);
+}
+
+.billing-card.gradient-red .billing-card-glow {
+    background: radial-gradient(circle, #ef4444 0%, transparent 70%);
+}
+
+.billing-card.gradient-gold .billing-card-glow {
+    background: radial-gradient(circle, var(--accent-gold) 0%, transparent 70%);
+}
+
+/* Premium Card Style */
+.premium-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.premium-card .card-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 18px 24px;
+}
+
+.premium-card .card-header h4 {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.premium-card .card-body {
+    padding: 24px;
+}
+
+/* Token Usage Grid */
+.token-usage-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.token-card {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid var(--border-color);
+}
+
+.token-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.token-icon.input {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.token-icon.output {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.token-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.token-value {
+    font-size: 24px;
+    font-weight: 700;
     color: var(--text-primary);
 }
 
-.list-item-subtitle {
-    font-size: 12px;
+.token-label {
+    font-size: 13px;
     color: var(--text-secondary);
 }
 
-.list-item-value {
+/* Premium Table */
+.premium-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.premium-table thead th {
+    background: var(--bg-secondary);
+    padding: 14px 16px;
     font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.premium-table tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.premium-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.premium-table .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(212, 175, 55, 0.15);
     color: var(--accent-gold);
 }
 
-.empty-state {
+.text-muted {
     color: var(--text-muted);
+}
+
+.text-center {
     text-align: center;
-    padding: 20px;
-    font-style: italic;
+}
+
+/* Responsive Billing */
+@media (max-width: 1024px) {
+    .billing-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .billing-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .billing-card {
+        padding: 18px;
+    }
+
+    .billing-value {
+        font-size: 24px;
+    }
+
+    .token-usage-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .premium-select {
+        width: 100%;
+    }
 }
