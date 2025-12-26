@@ -1,4 +1,5 @@
 import express from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -258,8 +259,19 @@ async function startServer() {
             console.log(`✅ Initial admin user created: ${adminEmail}`);
         }
 
+        // Create HTTP server
+        const server = createServer(app);
+
+        // Initialize WebSocket (optional - only if ws package is installed)
+        try {
+            const { initWebSocket } = await import('./services/websocket.js');
+            initWebSocket(server);
+        } catch (wsError) {
+            console.log('ℹ️  WebSocket not initialized (ws package not installed)');
+        }
+
         // Start server
-        app.listen(PORT, () => {
+        server.listen(PORT, () => {
             console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
@@ -270,6 +282,7 @@ async function startServer() {
 ║   🌐 Website:     http://localhost:${PORT}                   ║
 ║   🔧 Admin Panel: http://localhost:${PORT}/admin             ║
 ║   📡 API:         http://localhost:${PORT}/api               ║
+║   🔌 WebSocket:   ws://localhost:${PORT}/ws                  ║
 ║                                                           ║
 ║   Environment: ${process.env.NODE_ENV || 'development'}                            ║
 ║                                                           ║

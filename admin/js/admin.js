@@ -3142,3 +3142,213 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.loadBillingData = loadBillingData;
 
+// =====================
+// WEBSOCKET FOR INBOX
+// =====================
+
+let inboxSocket = null;
+let inboxReconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+
+function initInboxWebSocket() {
+    // Only connect if on inbox page
+    const isInboxPage = window.location.hash === '#inbox';
+    if (!isInboxPage && inboxSocket) {
+        inboxSocket.close();
+        inboxSocket = null;
+        return;
+    }
+
+    if (inboxSocket && inboxSocket.readyState === WebSocket.OPEN) {
+        return; // Already connected
+    }
+
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
+
+    try {
+        inboxSocket = new WebSocket(wsUrl);
+
+        inboxSocket.onopen = () => {
+            console.log('WebSocket connected');
+            inboxReconnectAttempts = 0;
+
+            // Authenticate if logged in
+            if (authToken) {
+                inboxSocket.send(JSON.stringify({
+                    type: 'authenticate',
+                    token: authToken
+                }));
+            }
+        };
+
+        inboxSocket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                handleInboxWebSocketMessage(data);
+            } catch (e) {
+                console.error('WebSocket message parse error:', e);
+            }
+        };
+
+        inboxSocket.onclose = () => {
+            console.log('WebSocket disconnected');
+            inboxSocket = null;
+
+            // Reconnect if still on inbox page
+            if (window.location.hash === '#inbox' && inboxReconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                inboxReconnectAttempts++;
+                setTimeout(initInboxWebSocket, 3000 * inboxReconnectAttempts);
+            }
+        };
+
+        inboxSocket.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+    } catch (e) {
+        console.warn('WebSocket not available:', e);
+    }
+}
+
+function handleInboxWebSocketMessage(data) {
+    switch (data.type) {
+        case 'connected':
+            console.log('Inbox WebSocket ready:', data.clientId);
+            break;
+
+        case 'new_message':
+            // Add message to chat if conversation is open
+            addIncomingMessage(data.message);
+            // Update unread badge
+            updateUnreadBadge(1);
+            // Show notification
+            showToast('New message received', 'info');
+            break;
+
+        case 'new_conversation':
+            // Add to conversations list
+            addNewConversation(data.conversation);
+            updateUnreadBadge(1);
+            break;
+
+        case 'whatsapp_qr':
+            // Update QR code display
+            updateWhatsAppQR(data.channelId, data.qrCode);
+            break;
+
+        case 'whatsapp_ready':
+            showToast('WhatsApp connected successfully!', 'success');
+            // Refresh channels list
+            if (typeof loadChannels === 'function') loadChannels();
+            break;
+
+        case 'whatsapp_disconnected':
+            showToast('WhatsApp disconnected: ' + data.reason, 'warning');
+            break;
+
+        case 'typing':
+            showTypingIndicator(data.conversationId, data.isTyping);
+            break;
+
+        default:
+            console.log('Unknown WebSocket message:', data.type);
+    }
+}
+
+function addIncomingMessage(message) {
+    const chatMessages = document.getElementById('chat-messages');
+    if (!chatMessages) return;
+
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-message ${message.direction}`;
+    msgDiv.innerHTML = `
+        <div class="message-bubble">
+            <p>${escapeHtml(message.content)}</p>
+            <span class="message-time">${formatMessageTime(message.created_at)}</span>
+        </div>
+    `;
+    chatMessages.appendChild(msgDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function addNewConversation(conversation) {
+    const list = document.getElementById('conversations-list');
+    if (!list) return;
+
+    const item = document.createElement('div');
+    item.className = 'conversation-item unread';
+    item.dataset.id = conversation.uuid;
+    item.dataset.platform = conversation.platform || 'whatsapp';
+    item.onclick = () => openConversation(conversation.uuid);
+    item.innerHTML = `
+        <div class="conv-avatar">
+            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.contact_name || 'Unknown')}&background=25D366&color=fff" alt="">
+            <span class="platform-icon ${conversation.platform || 'whatsapp'}"><i class="fab fa-${conversation.platform || 'whatsapp'}"></i></span>
+        </div>
+        <div class="conv-details">
+            <div class="conv-header">
+                <span class="conv-name">${escapeHtml(conversation.contact_name || 'Unknown')}</span>
+                <span class="conv-time">Just now</span>
+            </div>
+            <div class="conv-preview">
+                <span class="conv-message">${escapeHtml(conversation.last_message || 'New conversation')}</span>
+                <span class="unread-badge">1</span>
+            </div>
+        </div>
+    `;
+    list.insertBefore(item, list.firstChild);
+}
+
+function updateUnreadBadge(increment) {
+    const badge = document.getElementById('inbox-unread-badge');
+    if (badge) {
+        const current = parseInt(badge.textContent) || 0;
+        badge.textContent = current + increment;
+    }
+}
+
+function updateWhatsAppQR(channelId, qrCode) {
+    const qrContainer = document.getElementById(`qr-${channelId}`);
+    if (qrContainer && qrCode) {
+        // Generate QR code image from qr string
+        // This would require a QR code library like qrcode.js
+        qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCode)}" alt="QR Code">`;
+    }
+}
+
+function showTypingIndicator(conversationId, isTyping) {
+    const indicator = document.getElementById('typing-indicator');
+    if (indicator) {
+        indicator.classList.toggle('hidden', !isTyping);
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatMessageTime(timestamp) {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+// Initialize WebSocket when navigating to inbox
+window.addEventListener('hashchange', () => {
+    if (window.location.hash === '#inbox') {
+        initInboxWebSocket();
+    }
+});
+
+// Initialize on page load if already on inbox
+if (window.location.hash === '#inbox') {
+    document.addEventListener('DOMContentLoaded', initInboxWebSocket);
+}
+
+// Expose functions globally
+window.initInboxWebSocket = initInboxWebSocket;
+window.openConversation = openConversation || function (id) { console.log('Open conversation:', id); };
+
