@@ -17,7 +17,7 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 
-    <link rel="stylesheet" href="css/admin.css?v=25">
+    <link rel="stylesheet" href="css/admin.css?v=26">
 
     <!-- JSZip for media download -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -1769,7 +1769,7 @@
     <!-- Agent Create/Edit Modal -->
     <div id="agent-modal" class="image-preview-modal hidden" onclick="closeAgentModal()">
         <div class="image-preview-content" onclick="event.stopPropagation()"
-            style="width: 500px; max-width: 95%; background: var(--bg-primary); border-radius: 16px; padding: 30px;">
+            style="width: 500px; max-width: 95%; max-height: 90vh; overflow-y: auto; background: var(--bg-primary); border-radius: 16px; padding: 30px;">
             <button class="preview-close-btn" onclick="closeAgentModal()">
                 <i class="fas fa-times"></i>
             </button>
@@ -1849,7 +1849,7 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/admin.js?v=25"></script>
+    <script src="js/admin.js?v=26"></script>
 </body>
 
 </html>
