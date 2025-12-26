@@ -3752,6 +3752,127 @@ async function connectInstagram() {
     }
 }
 
+// =====================
+// AGENT MODAL FUNCTIONS
+// =====================
+
+function showCreateAgentModal() {
+    const modal = document.getElementById('agent-modal');
+    const title = document.getElementById('agent-modal-title');
+    const submitBtn = document.getElementById('agent-submit-btn');
+    const passwordGroup = document.getElementById('agent-password-group');
+
+    if (!modal) return;
+
+    // Reset form
+    document.getElementById('agent-form').reset();
+    document.getElementById('agent-edit-id').value = '';
+
+    // Set for create mode
+    title.innerHTML = '<i class="fas fa-user-plus" style="color: var(--accent-gold);"></i> Add New Agent';
+    submitBtn.innerHTML = '<i class="fas fa-plus"></i> Create Agent';
+    if (passwordGroup) passwordGroup.style.display = 'block';
+    document.getElementById('agent-password').required = true;
+
+    modal.classList.remove('hidden');
+}
+
+function closeAgentModal() {
+    const modal = document.getElementById('agent-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+async function editAgent(agentId) {
+    const modal = document.getElementById('agent-modal');
+    const title = document.getElementById('agent-modal-title');
+    const submitBtn = document.getElementById('agent-submit-btn');
+    const passwordGroup = document.getElementById('agent-password-group');
+
+    if (!modal) return;
+
+    try {
+        // Fetch agent data
+        const result = await apiRequest(`/agents/${agentId}`);
+        if (!result.success) {
+            showToast('Failed to load agent data', 'error');
+            return;
+        }
+
+        const agent = result.data;
+
+        // Set for edit mode
+        title.innerHTML = '<i class="fas fa-user-edit" style="color: var(--accent-gold);"></i> Edit Agent';
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+        if (passwordGroup) passwordGroup.style.display = 'block';
+        document.getElementById('agent-password').required = false;
+        document.getElementById('agent-password').placeholder = 'Leave blank to keep current';
+
+        // Populate form
+        document.getElementById('agent-edit-id').value = agentId;
+        document.getElementById('agent-first-name').value = agent.first_name || '';
+        document.getElementById('agent-last-name').value = agent.last_name || '';
+        document.getElementById('agent-email').value = agent.email || '';
+        document.getElementById('agent-role').value = agent.role || 'agent';
+
+        // Set permissions
+        const perms = typeof agent.permissions === 'string' ? JSON.parse(agent.permissions) : agent.permissions || {};
+        document.getElementById('perm-view-all').checked = perms.viewAll || false;
+        document.getElementById('perm-reply').checked = perms.reply || false;
+        document.getElementById('perm-assign').checked = perms.assign || false;
+        document.getElementById('perm-resolve').checked = perms.resolve || false;
+
+        modal.classList.remove('hidden');
+    } catch (error) {
+        showToast('Error loading agent: ' + error.message, 'error');
+    }
+}
+
+async function submitAgentForm(event) {
+    event.preventDefault();
+
+    const agentId = document.getElementById('agent-edit-id').value;
+    const isEdit = !!agentId;
+
+    const permissions = {
+        viewAll: document.getElementById('perm-view-all').checked,
+        reply: document.getElementById('perm-reply').checked,
+        assign: document.getElementById('perm-assign').checked,
+        resolve: document.getElementById('perm-resolve').checked
+    };
+
+    const data = {
+        first_name: document.getElementById('agent-first-name').value,
+        last_name: document.getElementById('agent-last-name').value,
+        email: document.getElementById('agent-email').value,
+        role: document.getElementById('agent-role').value,
+        permissions: permissions
+    };
+
+    const password = document.getElementById('agent-password').value;
+    if (password) {
+        data.password = password;
+    }
+
+    try {
+        const endpoint = isEdit ? `/agents/${agentId}` : '/agents';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        const result = await apiRequest(endpoint, method, data);
+
+        if (result.success) {
+            showToast(isEdit ? 'Agent updated successfully!' : 'Agent created successfully!', 'success');
+            closeAgentModal();
+            loadAgents(); // Refresh the agents list
+        } else {
+            showToast(result.message || 'Failed to save agent', 'error');
+        }
+    } catch (error) {
+        showToast('Error saving agent: ' + error.message, 'error');
+    }
+}
+
 // Expose functions globally
 window.initInboxWebSocket = initInboxWebSocket;
 window.openConversation = openConversation;
@@ -3762,4 +3883,8 @@ window.disconnectChannel = disconnectChannel;
 window.connectWhatsApp = connectWhatsApp;
 window.connectFacebook = connectFacebook;
 window.connectInstagram = connectInstagram;
+window.showCreateAgentModal = showCreateAgentModal;
+window.closeAgentModal = closeAgentModal;
+window.editAgent = editAgent;
+window.submitAgentForm = submitAgentForm;
 

@@ -17,7 +17,7 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 
-    <link rel="stylesheet" href="css/admin.css?v=24">
+    <link rel="stylesheet" href="css/admin.css?v=25">
 
     <!-- JSZip for media download -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -1766,10 +1766,90 @@
         </div>
     </div>
 
+    <!-- Agent Create/Edit Modal -->
+    <div id="agent-modal" class="image-preview-modal hidden" onclick="closeAgentModal()">
+        <div class="image-preview-content" onclick="event.stopPropagation()"
+            style="width: 500px; max-width: 95%; background: var(--bg-primary); border-radius: 16px; padding: 30px;">
+            <button class="preview-close-btn" onclick="closeAgentModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <h3 id="agent-modal-title" style="margin-bottom: 24px; color: var(--text-primary);">
+                <i class="fas fa-user-plus" style="color: var(--accent-gold);"></i> Add New Agent
+            </h3>
+            <form id="agent-form" onsubmit="submitAgentForm(event)">
+                <input type="hidden" id="agent-edit-id" value="">
+
+                <div style="display: grid; gap: 20px;">
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" id="agent-first-name" class="form-control" required placeholder="John">
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" id="agent-last-name" class="form-control" required placeholder="Doe">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="agent-email" class="form-control" required
+                            placeholder="agent@company.com">
+                    </div>
+
+                    <div class="form-group" id="agent-password-group">
+                        <label>Password</label>
+                        <input type="password" id="agent-password" class="form-control" minlength="6"
+                            placeholder="Minimum 6 characters">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select id="agent-role" class="form-control">
+                            <option value="agent">Agent</option>
+                            <option value="senior">Senior Agent</option>
+                            <option value="supervisor">Supervisor</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="margin-bottom: 12px;">Permissions</label>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            <label class="checkbox-label"
+                                style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="perm-view-all" checked> View All Conversations
+                            </label>
+                            <label class="checkbox-label"
+                                style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="perm-reply" checked> Reply to Messages
+                            </label>
+                            <label class="checkbox-label"
+                                style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="perm-assign"> Assign Conversations
+                            </label>
+                            <label class="checkbox-label"
+                                style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="perm-resolve"> Mark as Resolved
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-secondary" onclick="closeAgentModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="agent-submit-btn">
+                        <i class="fas fa-plus"></i> Create Agent
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/admin.js?v=24"></script>
+    <script src="js/admin.js?v=25"></script>
 </body>
 
 </html>
