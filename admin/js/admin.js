@@ -3776,33 +3776,27 @@ function pollWhatsAppQR(channelId) {
 }
 
 function updateWhatsAppQR(channelId, qrCode) {
-    // Create or update QR modal
-    let qrModal = document.getElementById('whatsapp-qr-modal');
-    if (!qrModal) {
-        qrModal = document.createElement('div');
-        qrModal.id = 'whatsapp-qr-modal';
-        qrModal.className = 'image-preview-modal';
-        qrModal.onclick = () => closeWhatsAppQR();
-        qrModal.innerHTML = `
-            <div class="image-preview-content" onclick="event.stopPropagation()" style="background: var(--bg-primary); border-radius: 16px; padding: 30px; text-align: center;">
-                <button class="preview-close-btn" onclick="closeWhatsAppQR()">
-                    <i class="fas fa-times"></i>
-                </button>
-                <h3 style="margin-bottom: 20px; color: var(--text-primary);">
-                    <i class="fab fa-whatsapp" style="color: #25D366;"></i> Scan QR Code
-                </h3>
-                <p style="color: var(--text-muted); margin-bottom: 20px;">Open WhatsApp on your phone and scan this code to connect</p>
-                <img id="whatsapp-qr-image" src="" style="max-width: 300px; border-radius: 8px; background: white; padding: 10px;">
-                <p style="color: var(--text-muted); margin-top: 15px; font-size: 13px;">QR code refreshes automatically</p>
-            </div>
+    // Update the QR container content
+    const qrContainer = document.getElementById('whatsapp-qr-container');
+    if (qrContainer) {
+        qrContainer.innerHTML = `
+            <img src="${qrCode}" alt="WhatsApp QR Code" style="max-width: 256px; border-radius: 8px; background: white; padding: 10px;">
         `;
-        document.body.appendChild(qrModal);
-    }
-
-    qrModal.classList.remove('hidden');
-    const qrImage = document.getElementById('whatsapp-qr-image');
-    if (qrImage) {
-        qrImage.src = qrCode;
+    } else {
+        // Fallback: create modal if container doesn't exist
+        let qrModal = document.getElementById('whatsapp-qr-modal');
+        if (!qrModal) {
+            showWhatsAppQRModal();
+        }
+        // Try again after modal is shown
+        setTimeout(() => {
+            const container = document.getElementById('whatsapp-qr-container');
+            if (container) {
+                container.innerHTML = `
+                    <img src="${qrCode}" alt="WhatsApp QR Code" style="max-width: 256px; border-radius: 8px; background: white; padding: 10px;">
+                `;
+            }
+        }, 100);
     }
 }
 
