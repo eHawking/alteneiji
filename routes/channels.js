@@ -1,5 +1,6 @@
 import express from 'express';
 import { Channel } from '../models/Channel.js';
+import * as whatsappService from '../services/whatsapp.js';
 
 const router = express.Router();
 
@@ -42,9 +43,15 @@ router.get('/:id', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Channel not found' });
         }
 
+        // Add WhatsApp status if applicable
+        let whatsappStatus = null;
+        if (channel.platform === 'whatsapp') {
+            whatsappStatus = whatsappService.getClientStatus(channel.id);
+        }
+
         res.json({
             success: true,
-            data: channel
+            data: { ...channel, whatsappStatus }
         });
     } catch (error) {
         console.error('Error fetching channel:', error);
@@ -54,7 +61,7 @@ router.get('/:id', async (req, res) => {
 
 /**
  * POST /api/channels/whatsapp/init
- * Initialize WhatsApp connection (returns QR code data)
+ * Initialize WhatsApp connection (starts QR code generation)
  */
 router.post('/whatsapp/init', async (req, res) => {
     try {
@@ -68,17 +75,33 @@ router.post('/whatsapp/init', async (req, res) => {
             status: 'pending'
         });
 
-        // TODO: Initialize actual WhatsApp Web connection
-        // For now, return placeholder QR data
-        res.json({
-            success: true,
-            data: {
-                channelId: channel.uuid,
-                qrCode: null, // Will be populated by WhatsApp service
-                status: 'waiting_for_qr'
-            },
-            message: 'WhatsApp connection initialized. Scan QR code to connect.'
-        });
+        // Initialize WhatsApp client
+        try {
+            const result = await whatsappService.initializeClient(channel.id);
+
+            res.json({
+                success: true,
+                data: {
+                    channelId: channel.uuid,
+                    channelDbId: channel.id,
+                    ...result
+                },
+                message: 'WhatsApp connection initialized. QR code will be available shortly.'
+            });
+        } catch (waError) {
+            // If WhatsApp service fails (not installed), return placeholder
+            console.warn('WhatsApp service not available:', waError.message);
+            res.json({
+                success: true,
+                data: {
+                    channelId: channel.uuid,
+                    qrCode: null,
+                    status: 'service_unavailable',
+                    note: 'WhatsApp service requires whatsapp-web.js. Install with: npm install whatsapp-web.js'
+                },
+                message: 'Channel created. WhatsApp service not configured yet.'
+            });
+        }
     } catch (error) {
         console.error('Error initializing WhatsApp:', error);
         res.status(500).json({ success: false, message: 'Failed to initialize WhatsApp' });
@@ -97,17 +120,46 @@ router.get('/whatsapp/:id/qr', async (req, res) => {
             return res.status(404).json({ success: false, message: 'WhatsApp channel not found' });
         }
 
-        // TODO: Get QR from WhatsApp service
+        // Get QR from WhatsApp service
+        const qrData = whatsappService.getQRCode(channel.id);
+
         res.json({
             success: true,
             data: {
-                status: channel.status,
-                qrCode: null // Will be populated by WhatsApp service
+                channelId: channel.uuid,
+                status: qrData.status,
+                qrCode: qrData.qr
             }
         });
     } catch (error) {
         console.error('Error getting QR code:', error);
         res.status(500).json({ success: false, message: 'Failed to get QR code' });
+    }
+});
+
+/**
+ * POST /api/channels/whatsapp/:id/sync
+ * Sync old messages from a WhatsApp conversation
+ */
+router.post('/whatsapp/:id/sync', async (req, res) => {
+    try {
+        const { conversationId, limit } = req.body;
+        const channel = await Channel.findByUuid(req.params.id);
+
+        if (!channel || channel.platform !== 'whatsapp') {
+            return res.status(404).json({ success: false, message: 'WhatsApp channel not found' });
+        }
+
+        const result = await whatsappService.syncMessages(channel.id, conversationId, limit || 50);
+
+        res.json({
+            success: true,
+            data: result,
+            message: `Synced ${result.synced} messages`
+        });
+    } catch (error) {
+        console.error('Error syncing messages:', error);
+        res.status(500).json({ success: false, message: error.message || 'Failed to sync messages' });
     }
 });
 
@@ -180,7 +232,14 @@ router.delete('/:id', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Channel not found' });
         }
 
-        // TODO: Cleanup WhatsApp session if applicable
+        // Disconnect WhatsApp session if applicable
+        if (channel.platform === 'whatsapp') {
+            try {
+                await whatsappService.disconnectClient(channel.id);
+            } catch (e) {
+                console.warn('WhatsApp disconnect failed:', e.message);
+            }
+        }
 
         await Channel.delete(channel.id);
 
