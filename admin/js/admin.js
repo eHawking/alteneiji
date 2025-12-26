@@ -3699,15 +3699,60 @@ async function disconnectChannel(uuid) {
 async function connectWhatsApp() {
     try {
         showToast('Initializing WhatsApp...', 'info');
+
+        // Show QR modal immediately with loading state
+        showWhatsAppQRModal();
+
         const result = await apiRequest('/channels/whatsapp/init', { method: 'POST' });
         if (result.success) {
-            showToast('Check QR code to connect WhatsApp', 'success');
-            // Poll for QR code
-            pollWhatsAppQR(result.data.channelId);
+            showToast('Scan QR code with WhatsApp', 'success');
+            // If QR code is immediately available, show it
+            if (result.data.qrCode) {
+                updateWhatsAppQR(result.data.channelId, result.data.qrCode);
+            } else {
+                // Poll for QR code
+                pollWhatsAppQR(result.data.channelId);
+            }
+        } else {
+            closeWhatsAppQR();
+            showToast('Failed to initialize WhatsApp', 'error');
         }
     } catch (error) {
+        closeWhatsAppQR();
         showToast('Failed to init WhatsApp: ' + error.message, 'error');
     }
+}
+
+function showWhatsAppQRModal() {
+    let qrModal = document.getElementById('whatsapp-qr-modal');
+    if (!qrModal) {
+        qrModal = document.createElement('div');
+        qrModal.id = 'whatsapp-qr-modal';
+        qrModal.className = 'image-preview-modal';
+        qrModal.onclick = () => closeWhatsAppQR();
+        qrModal.innerHTML = `
+            <div class="image-preview-content" onclick="event.stopPropagation()" style="background: var(--bg-primary); border-radius: 16px; padding: 30px; text-align: center; max-width: 400px;">
+                <button class="preview-close-btn" onclick="closeWhatsAppQR()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <h3 style="margin-bottom: 20px; color: var(--text-primary);">
+                    <i class="fab fa-whatsapp" style="color: #25D366;"></i> Connect WhatsApp
+                </h3>
+                <div id="whatsapp-qr-container">
+                    <div style="width: 250px; height: 250px; margin: 0 auto; background: rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 32px; color: #25D366; margin-bottom: 15px;"></i>
+                        <p style="color: var(--text-muted); font-size: 14px;">Generating QR Code...</p>
+                        <p style="color: var(--text-muted); font-size: 12px; margin-top: 5px;">This may take a moment</p>
+                    </div>
+                </div>
+                <p style="color: var(--text-muted); margin-top: 20px; font-size: 13px;">
+                    <i class="fas fa-info-circle"></i> Open WhatsApp on your phone → Settings → Linked Devices → Link a Device
+                </p>
+            </div>
+        `;
+        document.body.appendChild(qrModal);
+    }
+    qrModal.classList.remove('hidden');
 }
 
 function pollWhatsAppQR(channelId) {
