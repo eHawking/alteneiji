@@ -164,22 +164,82 @@ router.post('/whatsapp/:id/sync', async (req, res) => {
 });
 
 /**
+ * GET /api/channels/facebook/oauth-url
+ * Get Facebook OAuth URL for authorization
+ */
+router.get('/facebook/oauth-url', (req, res) => {
+    try {
+        const redirectUri = `${req.protocol}://${req.get('host')}/api/channels/facebook/callback`;
+        const state = Buffer.from(JSON.stringify({ timestamp: Date.now() })).toString('base64');
+
+        // Import Facebook service dynamically
+        import('../services/facebook.js').then(facebookService => {
+            const oauthUrl = facebookService.getOAuthUrl(redirectUri, state);
+            res.json({
+                success: true,
+                data: { oauthUrl, state }
+            });
+        }).catch(err => {
+            res.status(500).json({
+                success: false,
+                message: 'Facebook service not configured. Set FACEBOOK_APP_ID in .env'
+            });
+        });
+    } catch (error) {
+        console.error('Error generating OAuth URL:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+/**
+ * GET /api/channels/facebook/callback
+ * Facebook OAuth callback
+ */
+router.get('/facebook/callback', async (req, res) => {
+    try {
+        const { code, state } = req.query;
+
+        if (!code) {
+            return res.redirect('/admin/#channels?error=no_code');
+        }
+
+        const facebookService = await import('../services/facebook.js');
+        const redirectUri = `${req.protocol}://${req.get('host')}/api/channels/facebook/callback`;
+
+        // Exchange code for token
+        const tokenData = await facebookService.exchangeCodeForToken(code, redirectUri);
+
+        // Get user's pages
+        const pages = await facebookService.getUserPages(tokenData.access_token);
+
+        // Store pages in session/temp for selection
+        // For now, redirect with pages data
+        const pagesParam = encodeURIComponent(JSON.stringify(pages));
+        res.redirect(`/admin/#channels?facebook_pages=${pagesParam}`);
+
+    } catch (error) {
+        console.error('Facebook OAuth callback error:', error);
+        res.redirect('/admin/#channels?error=' + encodeURIComponent(error.message));
+    }
+});
+
+/**
  * POST /api/channels/facebook/connect
- * Connect Facebook Messenger (via OAuth)
+ * Connect a specific Facebook page (after OAuth)
  */
 router.post('/facebook/connect', async (req, res) => {
     try {
-        const { accessToken, pageId, pageName } = req.body;
+        const { pageId, pageName, pageAccessToken } = req.body;
 
-        const channel = await Channel.create({
-            platform: 'facebook',
-            name: pageName || 'Facebook Page',
-            identifier: pageId,
-            accessToken
-        });
+        if (!pageId || !pageAccessToken) {
+            return res.status(400).json({
+                success: false,
+                message: 'Page ID and access token are required'
+            });
+        }
 
-        // Update status to active (assuming token is valid)
-        await Channel.updateStatus(channel.id, 'active');
+        const facebookService = await import('../services/facebook.js');
+        const channel = await facebookService.connectPage({ pageId, pageName, pageAccessToken });
 
         res.json({
             success: true,
@@ -188,26 +248,96 @@ router.post('/facebook/connect', async (req, res) => {
         });
     } catch (error) {
         console.error('Error connecting Facebook:', error);
-        res.status(500).json({ success: false, message: 'Failed to connect Facebook' });
+        res.status(500).json({ success: false, message: error.message || 'Failed to connect Facebook' });
+    }
+});
+
+/**
+ * GET /api/channels/instagram/oauth-url
+ * Get Instagram OAuth URL (uses Facebook OAuth with Instagram permissions)
+ */
+router.get('/instagram/oauth-url', (req, res) => {
+    try {
+        const redirectUri = `${req.protocol}://${req.get('host')}/api/channels/instagram/callback`;
+        const state = Buffer.from(JSON.stringify({ timestamp: Date.now(), platform: 'instagram' })).toString('base64');
+
+        import('../services/instagram.js').then(instagramService => {
+            const oauthUrl = instagramService.getOAuthUrl(redirectUri, state);
+            res.json({
+                success: true,
+                data: { oauthUrl, state }
+            });
+        }).catch(err => {
+            res.status(500).json({
+                success: false,
+                message: 'Instagram service not configured. Set FACEBOOK_APP_ID in .env'
+            });
+        });
+    } catch (error) {
+        console.error('Error generating Instagram OAuth URL:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+/**
+ * GET /api/channels/instagram/callback
+ * Instagram OAuth callback
+ */
+router.get('/instagram/callback', async (req, res) => {
+    try {
+        const { code, state } = req.query;
+
+        if (!code) {
+            return res.redirect('/admin/#channels?error=no_code');
+        }
+
+        const facebookService = await import('../services/facebook.js');
+        const instagramService = await import('../services/instagram.js');
+
+        const redirectUri = `${req.protocol}://${req.get('host')}/api/channels/instagram/callback`;
+
+        // Exchange code for token (uses Facebook OAuth)
+        const tokenData = await facebookService.exchangeCodeForToken(code, redirectUri);
+
+        // Get Instagram accounts linked to Facebook pages
+        const accounts = await instagramService.getInstagramAccounts(tokenData.access_token);
+
+        if (accounts.length === 0) {
+            return res.redirect('/admin/#channels?error=no_instagram_accounts');
+        }
+
+        // Redirect with accounts data for selection
+        const accountsParam = encodeURIComponent(JSON.stringify(accounts));
+        res.redirect(`/admin/#channels?instagram_accounts=${accountsParam}`);
+
+    } catch (error) {
+        console.error('Instagram OAuth callback error:', error);
+        res.redirect('/admin/#channels?error=' + encodeURIComponent(error.message));
     }
 });
 
 /**
  * POST /api/channels/instagram/connect
- * Connect Instagram DMs (via OAuth)
+ * Connect a specific Instagram account (after OAuth)
  */
 router.post('/instagram/connect', async (req, res) => {
     try {
-        const { accessToken, accountId, accountName } = req.body;
+        const { id, username, pageAccessToken, profile_picture_url } = req.body;
 
-        const channel = await Channel.create({
-            platform: 'instagram',
-            name: accountName || 'Instagram Business',
-            identifier: accountId,
-            accessToken
+        if (!id || !pageAccessToken) {
+            return res.status(400).json({
+                success: false,
+                message: 'Instagram account ID and access token are required'
+            });
+        }
+
+        const instagramService = await import('../services/instagram.js');
+        const channel = await instagramService.connectAccount({
+            id,
+            username,
+            pageAccessToken,
+            profile_picture_url
         });
-
-        await Channel.updateStatus(channel.id, 'active');
 
         res.json({
             success: true,
@@ -216,7 +346,7 @@ router.post('/instagram/connect', async (req, res) => {
         });
     } catch (error) {
         console.error('Error connecting Instagram:', error);
-        res.status(500).json({ success: false, message: 'Failed to connect Instagram' });
+        res.status(500).json({ success: false, message: error.message || 'Failed to connect Instagram' });
     }
 });
 

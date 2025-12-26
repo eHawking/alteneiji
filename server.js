@@ -22,6 +22,7 @@ import brandsRoutes from './routes/brands.js';
 import inboxRoutes from './routes/inbox.js';
 import channelsRoutes from './routes/channels.js';
 import agentsRoutes from './routes/agents.js';
+import webhooksRoutes from './routes/webhooks.js';
 
 // Import middleware
 import { optionalAuth } from './middleware/auth.js';
@@ -107,6 +108,7 @@ app.use('/api/brands', brandsRoutes);
 app.use('/api/inbox', inboxRoutes);
 app.use('/api/channels', channelsRoutes);
 app.use('/api/agents', agentsRoutes);
+app.use('/api/webhooks', webhooksRoutes);
 
 // =====================
 // PUBLIC API ENDPOINTS
