@@ -17,7 +17,7 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 
-    <link rel="stylesheet" href="css/admin.css?v=23">
+    <link rel="stylesheet" href="css/admin.css?v=24">
 
     <!-- JSZip for media download -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -1438,49 +1438,32 @@
                                 </div>
                             </div>
 
-                            <div class="details-section">
+                            <div class="details-section" id="contact-info-section">
                                 <h5><i class="fas fa-info-circle"></i> Information</h5>
-                                <div class="detail-row">
-                                    <span class="detail-label">Email</span>
-                                    <span class="detail-value">ahmed.khan@email.com</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Location</span>
-                                    <span class="detail-value">Dubai, UAE</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">First Contact</span>
-                                    <span class="detail-value">Dec 25, 2024</span>
+                                <!-- Will be populated when conversation is selected -->
+                                <div style="color: var(--text-muted); font-size: 13px;">
+                                    <p>Select a conversation to see contact details</p>
                                 </div>
                             </div>
 
-                            <div class="details-section">
+                            <div class="details-section" id="assigned-agent-section">
                                 <h5><i class="fas fa-user-tie"></i> Assigned Agent</h5>
-                                <div class="assigned-agent">
-                                    <img src="https://ui-avatars.com/api/?name=Support+Agent&background=D4AF37&color=fff"
-                                        alt="">
-                                    <div>
-                                        <span class="agent-name">Support Agent</span>
-                                        <span class="agent-role">Customer Service</span>
-                                    </div>
-                                    <button class="btn-reassign" onclick="showAssignModal()">
-                                        <i class="fas fa-exchange-alt"></i>
-                                    </button>
+                                <!-- Will be populated when conversation is selected -->
+                                <div style="color: var(--text-muted); font-size: 13px;">
+                                    <p>No agent assigned</p>
                                 </div>
                             </div>
 
                             <div class="details-section">
                                 <h5><i class="fas fa-tags"></i> Labels</h5>
-                                <div class="labels-list">
-                                    <span class="label-tag" style="--tag-color: #10b981;">Lead</span>
-                                    <span class="label-tag" style="--tag-color: #f59e0b;">VIP</span>
+                                <div class="labels-list" id="contact-labels">
                                     <button class="btn-add-label">+ Add</button>
                                 </div>
                             </div>
 
                             <div class="details-section">
                                 <h5><i class="fas fa-sticky-note"></i> Notes</h5>
-                                <textarea class="contact-notes"
+                                <textarea class="contact-notes" id="contact-notes"
                                     placeholder="Add notes about this contact..."></textarea>
                                 <button class="btn btn-secondary btn-sm">Save Notes</button>
                             </div>
@@ -1507,7 +1490,7 @@
                                 <i class="fas fa-users"></i>
                             </div>
                             <div class="stat-info">
-                                <span class="stat-value" id="total-agents">5</span>
+                                <span class="stat-value" id="total-agents">0</span>
                                 <span class="stat-label">Total Agents</span>
                             </div>
                         </div>
@@ -1516,7 +1499,7 @@
                                 <i class="fas fa-circle"></i>
                             </div>
                             <div class="stat-info">
-                                <span class="stat-value" id="online-agents">3</span>
+                                <span class="stat-value" id="online-agents">0</span>
                                 <span class="stat-label">Online Now</span>
                             </div>
                         </div>
@@ -1525,7 +1508,7 @@
                                 <i class="fas fa-comments"></i>
                             </div>
                             <div class="stat-info">
-                                <span class="stat-value" id="active-chats">12</span>
+                                <span class="stat-value" id="active-chats">0</span>
                                 <span class="stat-label">Active Chats</span>
                             </div>
                         </div>
@@ -1534,7 +1517,7 @@
                                 <i class="fas fa-clock"></i>
                             </div>
                             <div class="stat-info">
-                                <span class="stat-value" id="avg-response">2m</span>
+                                <span class="stat-value" id="avg-response">-</span>
                                 <span class="stat-label">Avg Response</span>
                             </div>
                         </div>
@@ -1786,7 +1769,7 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/admin.js?v=23"></script>
+    <script src="js/admin.js?v=24"></script>
 </body>
 
 </html>
