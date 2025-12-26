@@ -1361,59 +1361,11 @@
 
                             <!-- Conversations List -->
                             <div class="conversations-list" id="conversations-list">
-                                <!-- Sample Conversation Items -->
-                                <div class="conversation-item unread active" data-id="1" data-platform="whatsapp">
-                                    <div class="conv-avatar">
-                                        <img src="https://ui-avatars.com/api/?name=Ahmed+Khan&background=25D366&color=fff"
-                                            alt="">
-                                        <span class="platform-icon whatsapp"><i class="fab fa-whatsapp"></i></span>
-                                    </div>
-                                    <div class="conv-details">
-                                        <div class="conv-header">
-                                            <span class="conv-name">Ahmed Khan</span>
-                                            <span class="conv-time">2m ago</span>
-                                        </div>
-                                        <div class="conv-preview">
-                                            <span class="conv-message">Hi, I need information about your
-                                                services...</span>
-                                            <span class="unread-badge">3</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="conversation-item" data-id="2" data-platform="facebook">
-                                    <div class="conv-avatar">
-                                        <img src="https://ui-avatars.com/api/?name=Sarah+Ali&background=1877F2&color=fff"
-                                            alt="">
-                                        <span class="platform-icon facebook"><i
-                                                class="fab fa-facebook-messenger"></i></span>
-                                    </div>
-                                    <div class="conv-details">
-                                        <div class="conv-header">
-                                            <span class="conv-name">Sarah Ali</span>
-                                            <span class="conv-time">1h ago</span>
-                                        </div>
-                                        <div class="conv-preview">
-                                            <span class="conv-message">Thank you for the quick response!</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="conversation-item" data-id="3" data-platform="instagram">
-                                    <div class="conv-avatar">
-                                        <img src="https://ui-avatars.com/api/?name=Dubai+Traders&background=E4405F&color=fff"
-                                            alt="">
-                                        <span class="platform-icon instagram"><i class="fab fa-instagram"></i></span>
-                                    </div>
-                                    <div class="conv-details">
-                                        <div class="conv-header">
-                                            <span class="conv-name">Dubai Traders</span>
-                                            <span class="conv-time">3h ago</span>
-                                        </div>
-                                        <div class="conv-preview">
-                                            <span class="conv-message">Can you share the product catalog?</span>
-                                        </div>
-                                    </div>
+                                <!-- Will be populated by loadInboxData() -->
+                                <div class="empty-state" style="padding: 40px 20px; text-align: center;">
+                                    <i class="fas fa-spinner fa-spin"
+                                        style="font-size: 32px; opacity: 0.5; margin-bottom: 15px;"></i>
+                                    <p style="color: var(--text-secondary);">Loading conversations...</p>
                                 </div>
                             </div>
                         </div>
@@ -1636,87 +1588,12 @@
                         </div>
                         <div class="card-body">
                             <div class="agents-grid" id="agents-grid">
-                                <!-- Agent Card -->
-                                <div class="agent-card">
-                                    <div class="agent-status online"></div>
-                                    <img src="https://ui-avatars.com/api/?name=Mohammed+Ali&background=D4AF37&color=fff"
-                                        alt="" class="agent-avatar">
-                                    <h4>Mohammed Ali</h4>
-                                    <span class="agent-role">Senior Agent</span>
-                                    <div class="agent-stats">
-                                        <div class="agent-stat">
-                                            <span class="stat-num">24</span>
-                                            <span>Chats</span>
-                                        </div>
-                                        <div class="agent-stat">
-                                            <span class="stat-num">98%</span>
-                                            <span>Rating</span>
-                                        </div>
-                                    </div>
-                                    <div class="agent-permissions">
-                                        <span class="perm-badge"><i class="fas fa-eye"></i> View All</span>
-                                        <span class="perm-badge"><i class="fas fa-reply"></i> Reply</span>
-                                        <span class="perm-badge"><i class="fas fa-user-plus"></i> Assign</span>
-                                    </div>
-                                    <div class="agent-actions">
-                                        <button class="btn btn-secondary btn-sm" onclick="editAgent(1)">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="agent-card">
-                                    <div class="agent-status online"></div>
-                                    <img src="https://ui-avatars.com/api/?name=Fatima+Hassan&background=10b981&color=fff"
-                                        alt="" class="agent-avatar">
-                                    <h4>Fatima Hassan</h4>
-                                    <span class="agent-role">Support Agent</span>
-                                    <div class="agent-stats">
-                                        <div class="agent-stat">
-                                            <span class="stat-num">18</span>
-                                            <span>Chats</span>
-                                        </div>
-                                        <div class="agent-stat">
-                                            <span class="stat-num">95%</span>
-                                            <span>Rating</span>
-                                        </div>
-                                    </div>
-                                    <div class="agent-permissions">
-                                        <span class="perm-badge"><i class="fas fa-eye"></i> Assigned Only</span>
-                                        <span class="perm-badge"><i class="fas fa-reply"></i> Reply</span>
-                                    </div>
-                                    <div class="agent-actions">
-                                        <button class="btn btn-secondary btn-sm" onclick="editAgent(2)">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="agent-card">
-                                    <div class="agent-status offline"></div>
-                                    <img src="https://ui-avatars.com/api/?name=Omar+Khalid&background=6366f1&color=fff"
-                                        alt="" class="agent-avatar">
-                                    <h4>Omar Khalid</h4>
-                                    <span class="agent-role">Agent</span>
-                                    <div class="agent-stats">
-                                        <div class="agent-stat">
-                                            <span class="stat-num">0</span>
-                                            <span>Chats</span>
-                                        </div>
-                                        <div class="agent-stat">
-                                            <span class="stat-num">92%</span>
-                                            <span>Rating</span>
-                                        </div>
-                                    </div>
-                                    <div class="agent-permissions">
-                                        <span class="perm-badge"><i class="fas fa-eye"></i> Assigned Only</span>
-                                        <span class="perm-badge"><i class="fas fa-reply"></i> Reply</span>
-                                    </div>
-                                    <div class="agent-actions">
-                                        <button class="btn btn-secondary btn-sm" onclick="editAgent(3)">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </button>
-                                    </div>
+                                <!-- Will be populated by loadAgents() -->
+                                <div class="empty-state"
+                                    style="grid-column: 1/-1; padding: 60px 20px; text-align: center;">
+                                    <i class="fas fa-spinner fa-spin"
+                                        style="font-size: 32px; opacity: 0.5; margin-bottom: 15px;"></i>
+                                    <p>Loading agents...</p>
                                 </div>
                             </div>
                         </div>
@@ -1742,41 +1619,19 @@
                                 </div>
                                 <div class="channel-info">
                                     <h4>WhatsApp</h4>
-                                    <span class="channel-status connected">2 Connected</span>
+                                    <span class="channel-status" id="whatsapp-status">Not Connected</span>
                                 </div>
-                                <button class="btn btn-primary btn-sm" onclick="showWhatsAppConnectModal()">
+                                <button class="btn btn-primary btn-sm" onclick="connectWhatsApp()">
                                     <i class="fas fa-plus"></i> Add
                                 </button>
                             </div>
 
-                            <div class="connected-accounts">
-                                <div class="account-item">
-                                    <img src="https://ui-avatars.com/api/?name=Business+1&background=25D366&color=fff"
-                                        alt="">
-                                    <div class="account-details">
-                                        <span class="account-name">Alteneiji Main</span>
-                                        <span class="account-phone">+971 50 123 4567</span>
-                                    </div>
-                                    <span class="account-status active">
-                                        <i class="fas fa-circle"></i> Active
-                                    </span>
-                                    <button class="btn-icon danger" onclick="disconnectChannel('wa1')">
-                                        <i class="fas fa-unlink"></i>
-                                    </button>
-                                </div>
-                                <div class="account-item">
-                                    <img src="https://ui-avatars.com/api/?name=Business+2&background=25D366&color=fff"
-                                        alt="">
-                                    <div class="account-details">
-                                        <span class="account-name">Alteneiji Support</span>
-                                        <span class="account-phone">+971 50 987 6543</span>
-                                    </div>
-                                    <span class="account-status active">
-                                        <i class="fas fa-circle"></i> Active
-                                    </span>
-                                    <button class="btn-icon danger" onclick="disconnectChannel('wa2')">
-                                        <i class="fas fa-unlink"></i>
-                                    </button>
+                            <div class="connected-accounts" id="whatsapp-accounts">
+                                <!-- Will be populated by loadChannels() -->
+                                <div class="empty-state">
+                                    <i class="fab fa-whatsapp"></i>
+                                    <p>No accounts connected</p>
+                                    <span>Click "Add" to connect via QR code</span>
                                 </div>
                             </div>
 
@@ -1793,27 +1648,19 @@
                                 </div>
                                 <div class="channel-info">
                                     <h4>Facebook Messenger</h4>
-                                    <span class="channel-status connected">1 Connected</span>
+                                    <span class="channel-status" id="facebook-status">Not Connected</span>
                                 </div>
                                 <button class="btn btn-primary btn-sm" onclick="connectFacebook()">
                                     <i class="fas fa-plus"></i> Add
                                 </button>
                             </div>
 
-                            <div class="connected-accounts">
-                                <div class="account-item">
-                                    <img src="https://ui-avatars.com/api/?name=Alteneiji+Group&background=1877F2&color=fff"
-                                        alt="">
-                                    <div class="account-details">
-                                        <span class="account-name">Alteneiji Group</span>
-                                        <span class="account-phone">Facebook Page</span>
-                                    </div>
-                                    <span class="account-status active">
-                                        <i class="fas fa-circle"></i> Active
-                                    </span>
-                                    <button class="btn-icon danger" onclick="disconnectChannel('fb1')">
-                                        <i class="fas fa-unlink"></i>
-                                    </button>
+                            <div class="connected-accounts" id="facebook-accounts">
+                                <!-- Will be populated by loadChannels() -->
+                                <div class="empty-state">
+                                    <i class="fab fa-facebook-messenger"></i>
+                                    <p>No pages connected</p>
+                                    <span>Click "Add" to connect via OAuth</span>
                                 </div>
                             </div>
 
@@ -1830,18 +1677,18 @@
                                 </div>
                                 <div class="channel-info">
                                     <h4>Instagram DMs</h4>
-                                    <span class="channel-status disconnected">Not Connected</span>
+                                    <span class="channel-status" id="instagram-status">Not Connected</span>
                                 </div>
                                 <button class="btn btn-primary btn-sm" onclick="connectInstagram()">
                                     <i class="fas fa-link"></i> Connect
                                 </button>
                             </div>
 
-                            <div class="connected-accounts empty">
+                            <div class="connected-accounts" id="instagram-accounts">
                                 <div class="empty-state">
                                     <i class="fab fa-instagram"></i>
-                                    <p>No Instagram accounts connected</p>
-                                    <span>Connect your Instagram Business account to receive DMs</span>
+                                    <p>No accounts connected</p>
+                                    <span>Requires Instagram Business account</span>
                                 </div>
                             </div>
 

@@ -3340,15 +3340,426 @@ function formatMessageTime(timestamp) {
 window.addEventListener('hashchange', () => {
     if (window.location.hash === '#inbox') {
         initInboxWebSocket();
+        loadInboxData();
+    } else if (window.location.hash === '#agents') {
+        loadAgents();
+    } else if (window.location.hash === '#channels') {
+        loadChannels();
     }
 });
 
 // Initialize on page load if already on inbox
 if (window.location.hash === '#inbox') {
-    document.addEventListener('DOMContentLoaded', initInboxWebSocket);
+    document.addEventListener('DOMContentLoaded', () => {
+        initInboxWebSocket();
+        loadInboxData();
+    });
+} else if (window.location.hash === '#agents') {
+    document.addEventListener('DOMContentLoaded', loadAgents);
+} else if (window.location.hash === '#channels') {
+    document.addEventListener('DOMContentLoaded', loadChannels);
+}
+
+// =====================
+// INBOX DATA LOADING
+// =====================
+
+async function loadInboxData() {
+    try {
+        const result = await apiRequest('/inbox/conversations');
+        if (result.success) {
+            renderConversationsList(result.data);
+        }
+    } catch (error) {
+        console.error('Error loading inbox:', error);
+    }
+}
+
+function renderConversationsList(conversations) {
+    const list = document.getElementById('conversations-list');
+    if (!list) return;
+
+    if (!conversations || conversations.length === 0) {
+        list.innerHTML = `
+            <div class="empty-state" style="padding: 40px 20px; text-align: center;">
+                <i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; margin-bottom: 15px;"></i>
+                <p style="color: var(--text-secondary);">No conversations yet</p>
+                <span style="font-size: 12px; color: var(--text-muted);">Connect a channel to start receiving messages</span>
+            </div>
+        `;
+        return;
+    }
+
+    list.innerHTML = conversations.map(conv => `
+        <div class="conversation-item ${conv.unread_count > 0 ? 'unread' : ''}" 
+             data-id="${conv.uuid}" data-platform="${conv.platform || 'whatsapp'}"
+             onclick="openConversation('${conv.uuid}')">
+            <div class="conv-avatar">
+                <img src="${conv.contact_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(conv.contact_name || 'U')}&background=25D366&color=fff`}" alt="">
+                <span class="platform-icon ${conv.platform || 'whatsapp'}">
+                    <i class="fab fa-${conv.platform || 'whatsapp'}"></i>
+                </span>
+            </div>
+            <div class="conv-details">
+                <div class="conv-header">
+                    <span class="conv-name">${escapeHtml(conv.contact_name || conv.contact_identifier || 'Unknown')}</span>
+                    <span class="conv-time">${formatRelativeTime(conv.last_message_at)}</span>
+                </div>
+                <div class="conv-preview">
+                    <span class="conv-message">${escapeHtml(conv.last_message || 'No messages')}</span>
+                    ${conv.unread_count > 0 ? `<span class="unread-badge">${conv.unread_count}</span>` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function openConversation(uuid) {
+    try {
+        const result = await apiRequest(`/inbox/conversations/${uuid}`);
+        if (result.success) {
+            renderChatArea(result.data.conversation, result.data.messages);
+            renderContactDetails(result.data.conversation);
+
+            // Mark as active in list
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.id === uuid);
+            });
+        }
+    } catch (error) {
+        console.error('Error opening conversation:', error);
+    }
+}
+
+function renderChatArea(conversation, messages) {
+    const chatHeader = document.querySelector('.chat-header');
+    const chatMessages = document.getElementById('chat-messages');
+
+    if (chatHeader) {
+        chatHeader.innerHTML = `
+            <div class="chat-contact-info">
+                <img src="${conversation.contact_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.contact_name || 'U')}&background=25D366&color=fff`}" alt="" class="chat-avatar">
+                <div class="chat-contact-details">
+                    <h4>${escapeHtml(conversation.contact_name || 'Unknown')}</h4>
+                    <span class="chat-status"><i class="fas fa-circle"></i> ${conversation.platform || 'WhatsApp'}</span>
+                </div>
+            </div>
+            <div class="chat-actions">
+                <button class="btn-icon" title="Search"><i class="fas fa-search"></i></button>
+                <button class="btn-icon" title="Call"><i class="fas fa-phone"></i></button>
+                <button class="btn-icon" title="More"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
+        `;
+    }
+
+    if (chatMessages) {
+        if (!messages || messages.length === 0) {
+            chatMessages.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                    <i class="fas fa-comments" style="font-size: 48px; opacity: 0.3; margin-bottom: 15px;"></i>
+                    <p>No messages yet</p>
+                </div>
+            `;
+        } else {
+            chatMessages.innerHTML = messages.map(msg => `
+                <div class="chat-message ${msg.direction}">
+                    <div class="message-bubble">
+                        <p>${escapeHtml(msg.content)}</p>
+                        <span class="message-time">
+                            ${formatMessageTime(msg.created_at)}
+                            ${msg.direction === 'outgoing' ? '<i class="fas fa-check-double"></i>' : ''}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
+}
+
+function renderContactDetails(conversation) {
+    const profile = document.querySelector('.contact-profile');
+    if (profile) {
+        profile.innerHTML = `
+            <img src="${conversation.contact_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.contact_name || 'U')}&background=25D366&color=fff&size=80`}" alt="" class="profile-avatar">
+            <h3>${escapeHtml(conversation.contact_name || 'Unknown')}</h3>
+            <span class="profile-platform"><i class="fab fa-${conversation.platform || 'whatsapp'}"></i> ${conversation.platform || 'WhatsApp'}</span>
+        `;
+    }
+}
+
+function formatRelativeTime(timestamp) {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return Math.floor(diff / 60000) + 'm';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + 'h';
+    return date.toLocaleDateString();
+}
+
+// =====================
+// AGENTS DATA LOADING
+// =====================
+
+async function loadAgents() {
+    try {
+        const result = await apiRequest('/agents');
+        if (result.success) {
+            renderAgentsList(result.data);
+            renderAgentStats(result.stats);
+        }
+    } catch (error) {
+        console.error('Error loading agents:', error);
+    }
+}
+
+function renderAgentsList(agents) {
+    const grid = document.getElementById('agents-grid');
+    if (!grid) return;
+
+    if (!agents || agents.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1/-1; padding: 60px 20px; text-align: center;">
+                <i class="fas fa-users" style="font-size: 48px; opacity: 0.3; margin-bottom: 15px;"></i>
+                <p>No agents yet</p>
+                <button class="btn btn-primary" onclick="showCreateAgentModal()" style="margin-top: 15px;">
+                    <i class="fas fa-plus"></i> Add First Agent
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    grid.innerHTML = agents.map(agent => {
+        const permissions = typeof agent.permissions === 'string' ? JSON.parse(agent.permissions) : agent.permissions || {};
+        return `
+            <div class="agent-card">
+                <div class="agent-status ${agent.is_online ? 'online' : 'offline'}"></div>
+                <img src="${agent.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(agent.first_name + ' ' + agent.last_name)}&background=d4af37&color=fff`}" alt="" class="agent-avatar">
+                <h4>${escapeHtml(agent.first_name)} ${escapeHtml(agent.last_name)}</h4>
+                <span class="agent-role">${agent.role || 'Agent'}</span>
+                <div class="agent-stats">
+                    <div class="agent-stat">
+                        <span class="stat-num">${agent.active_chats || 0}</span>
+                        <span>Active Chats</span>
+                    </div>
+                </div>
+                <div class="agent-permissions">
+                    ${permissions.viewAll ? '<span class="perm-badge"><i class="fas fa-eye"></i> View All</span>' : ''}
+                    ${permissions.reply ? '<span class="perm-badge"><i class="fas fa-reply"></i> Reply</span>' : ''}
+                    ${permissions.assign ? '<span class="perm-badge"><i class="fas fa-user-plus"></i> Assign</span>' : ''}
+                </div>
+                <div class="agent-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="editAgent('${agent.uuid}')">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderAgentStats(stats) {
+    if (!stats) return;
+
+    const totalEl = document.getElementById('total-agents');
+    const onlineEl = document.getElementById('online-agents');
+    const activeEl = document.getElementById('active-agents');
+
+    if (totalEl) totalEl.textContent = stats.total || 0;
+    if (onlineEl) onlineEl.textContent = stats.online || 0;
+    if (activeEl) activeEl.textContent = stats.active || 0;
+}
+
+// =====================
+// CHANNELS DATA LOADING
+// =====================
+
+async function loadChannels() {
+    try {
+        const result = await apiRequest('/channels');
+        if (result.success) {
+            renderChannelsList(result.data, result.stats);
+        }
+    } catch (error) {
+        console.error('Error loading channels:', error);
+    }
+}
+
+function renderChannelsList(channels, stats) {
+    // Render WhatsApp accounts
+    const waAccounts = document.getElementById('whatsapp-accounts');
+    if (waAccounts) {
+        const waChannels = channels.whatsapp || [];
+        if (waChannels.length === 0) {
+            waAccounts.innerHTML = `
+                <div class="empty-state">
+                    <i class="fab fa-whatsapp"></i>
+                    <p>No accounts connected</p>
+                    <span>Click "Connect Account" to add WhatsApp</span>
+                </div>
+            `;
+        } else {
+            waAccounts.innerHTML = waChannels.map(ch => `
+                <div class="account-item">
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(ch.name)}&background=25D366&color=fff" alt="">
+                    <div class="account-details">
+                        <span class="account-name">${escapeHtml(ch.name)}</span>
+                        <span class="account-phone">${ch.phone_number || ch.identifier}</span>
+                    </div>
+                    <span class="account-status ${ch.status === 'active' ? 'active' : ''}">
+                        <i class="fas fa-circle"></i> ${ch.status}
+                    </span>
+                    <button class="btn-icon danger" onclick="disconnectChannel('${ch.uuid}')" title="Disconnect">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+    }
+
+    // Render Facebook accounts
+    const fbAccounts = document.getElementById('facebook-accounts');
+    if (fbAccounts) {
+        const fbChannels = channels.facebook || [];
+        if (fbChannels.length === 0) {
+            fbAccounts.innerHTML = `
+                <div class="empty-state">
+                    <i class="fab fa-facebook-messenger"></i>
+                    <p>No pages connected</p>
+                    <span>Click "Connect Page" to add Messenger</span>
+                </div>
+            `;
+        } else {
+            fbAccounts.innerHTML = fbChannels.map(ch => `
+                <div class="account-item">
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(ch.name)}&background=1877F2&color=fff" alt="">
+                    <div class="account-details">
+                        <span class="account-name">${escapeHtml(ch.name)}</span>
+                    </div>
+                    <span class="account-status ${ch.status === 'active' ? 'active' : ''}">
+                        <i class="fas fa-circle"></i> ${ch.status}
+                    </span>
+                    <button class="btn-icon danger" onclick="disconnectChannel('${ch.uuid}')" title="Disconnect">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+    }
+
+    // Render Instagram accounts
+    const igAccounts = document.getElementById('instagram-accounts');
+    if (igAccounts) {
+        const igChannels = channels.instagram || [];
+        if (igChannels.length === 0) {
+            igAccounts.innerHTML = `
+                <div class="empty-state">
+                    <i class="fab fa-instagram"></i>
+                    <p>No accounts connected</p>
+                    <span>Click "Connect Account" to add Instagram</span>
+                </div>
+            `;
+        } else {
+            igAccounts.innerHTML = igChannels.map(ch => `
+                <div class="account-item">
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(ch.name)}&background=E4405F&color=fff" alt="">
+                    <div class="account-details">
+                        <span class="account-name">${escapeHtml(ch.name)}</span>
+                    </div>
+                    <span class="account-status ${ch.status === 'active' ? 'active' : ''}">
+                        <i class="fas fa-circle"></i> ${ch.status}
+                    </span>
+                    <button class="btn-icon danger" onclick="disconnectChannel('${ch.uuid}')" title="Disconnect">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+    }
+}
+
+async function disconnectChannel(uuid) {
+    if (!confirm('Are you sure you want to disconnect this channel?')) return;
+
+    try {
+        const result = await apiRequest(`/channels/${uuid}`, { method: 'DELETE' });
+        if (result.success) {
+            showToast('Channel disconnected', 'success');
+            loadChannels();
+        }
+    } catch (error) {
+        showToast('Failed to disconnect: ' + error.message, 'error');
+    }
+}
+
+async function connectWhatsApp() {
+    try {
+        showToast('Initializing WhatsApp...', 'info');
+        const result = await apiRequest('/channels/whatsapp/init', { method: 'POST' });
+        if (result.success) {
+            showToast('Check QR code to connect WhatsApp', 'success');
+            // Poll for QR code
+            pollWhatsAppQR(result.data.channelId);
+        }
+    } catch (error) {
+        showToast('Failed to init WhatsApp: ' + error.message, 'error');
+    }
+}
+
+function pollWhatsAppQR(channelId) {
+    const pollInterval = setInterval(async () => {
+        try {
+            const result = await apiRequest(`/channels/whatsapp/${channelId}/qr`);
+            if (result.data.status === 'ready') {
+                clearInterval(pollInterval);
+                showToast('WhatsApp connected!', 'success');
+                loadChannels();
+            } else if (result.data.qrCode) {
+                updateWhatsAppQR(channelId, result.data.qrCode);
+            }
+        } catch (error) {
+            clearInterval(pollInterval);
+        }
+    }, 3000);
+
+    // Stop polling after 2 minutes
+    setTimeout(() => clearInterval(pollInterval), 120000);
+}
+
+async function connectFacebook() {
+    try {
+        const result = await apiRequest('/channels/facebook/oauth-url');
+        if (result.success && result.data.oauthUrl) {
+            window.open(result.data.oauthUrl, '_blank', 'width=600,height=700');
+        }
+    } catch (error) {
+        showToast('Failed to connect Facebook: ' + error.message, 'error');
+    }
+}
+
+async function connectInstagram() {
+    try {
+        const result = await apiRequest('/channels/instagram/oauth-url');
+        if (result.success && result.data.oauthUrl) {
+            window.open(result.data.oauthUrl, '_blank', 'width=600,height=700');
+        }
+    } catch (error) {
+        showToast('Failed to connect Instagram: ' + error.message, 'error');
+    }
 }
 
 // Expose functions globally
 window.initInboxWebSocket = initInboxWebSocket;
-window.openConversation = openConversation || function (id) { console.log('Open conversation:', id); };
+window.openConversation = openConversation;
+window.loadInboxData = loadInboxData;
+window.loadAgents = loadAgents;
+window.loadChannels = loadChannels;
+window.disconnectChannel = disconnectChannel;
+window.connectWhatsApp = connectWhatsApp;
+window.connectFacebook = connectFacebook;
+window.connectInstagram = connectInstagram;
 
