@@ -17,7 +17,7 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 
-    <link rel="stylesheet" href="css/admin.css?v=22">
+    <link rel="stylesheet" href="css/admin.css?v=23">
 
     <!-- JSZip for media download -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -1373,62 +1373,20 @@
                         <!-- Chat Area -->
                         <div class="inbox-chat">
                             <div class="chat-header">
+                                <!-- Will be populated when conversation is selected -->
                                 <div class="chat-contact-info">
-                                    <img src="https://ui-avatars.com/api/?name=Ahmed+Khan&background=25D366&color=fff"
-                                        alt="" class="chat-avatar">
-                                    <div class="chat-contact-details">
-                                        <h4>Ahmed Khan</h4>
-                                        <span class="chat-status online">
-                                            <i class="fab fa-whatsapp"></i> WhatsApp • Online
-                                        </span>
+                                    <div style="opacity: 0.5; color: var(--text-muted);">
+                                        <i class="fas fa-comments" style="margin-right: 8px;"></i> Select a conversation
                                     </div>
-                                </div>
-                                <div class="chat-actions">
-                                    <button class="btn-icon" title="Assign Agent" onclick="showAssignModal()">
-                                        <i class="fas fa-user-plus"></i>
-                                    </button>
-                                    <button class="btn-icon" title="Mark as Resolved">
-                                        <i class="fas fa-check-circle"></i>
-                                    </button>
-                                    <button class="btn-icon" title="More Options">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
                                 </div>
                             </div>
 
                             <div class="chat-messages" id="chat-messages">
-                                <!-- Date Divider -->
-                                <div class="chat-date-divider">
-                                    <span>Today</span>
-                                </div>
-
-                                <!-- Incoming Message -->
-                                <div class="chat-message incoming">
-                                    <div class="message-bubble">
-                                        <p>Hi, I need information about your services for importing goods from UAE.</p>
-                                        <span class="message-time">10:30 AM</span>
-                                    </div>
-                                </div>
-
-                                <!-- Outgoing Message -->
-                                <div class="chat-message outgoing">
-                                    <div class="message-bubble">
-                                        <p>Hello Ahmed! Thank you for reaching out to Alteneiji Group. We'd be happy to
-                                            help you with your import needs.</p>
-                                        <p>Could you please tell me more about the type of goods you're looking to
-                                            import?</p>
-                                        <span class="message-time">10:32 AM <i class="fas fa-check-double"
-                                                style="color: #34B7F1;"></i></span>
-                                    </div>
-                                </div>
-
-                                <!-- Incoming Message -->
-                                <div class="chat-message incoming">
-                                    <div class="message-bubble">
-                                        <p>I'm interested in organic spices and food products. Do you handle that
-                                            category?</p>
-                                        <span class="message-time">10:35 AM</span>
-                                    </div>
+                                <!-- Will be populated when conversation is selected -->
+                                <div style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
+                                    <i class="fas fa-comments"
+                                        style="font-size: 48px; opacity: 0.3; margin-bottom: 15px;"></i>
+                                    <p>Select a conversation to view messages</p>
                                 </div>
                             </div>
 
@@ -1473,10 +1431,11 @@
                             </div>
 
                             <div class="contact-profile">
-                                <img src="https://ui-avatars.com/api/?name=Ahmed+Khan&background=25D366&color=fff&size=80"
-                                    alt="" class="profile-avatar">
-                                <h3>Ahmed Khan</h3>
-                                <span class="profile-platform"><i class="fab fa-whatsapp"></i> +971 50 123 4567</span>
+                                <!-- Will be populated when conversation is selected -->
+                                <div style="text-align: center; padding: 20px; color: var(--text-muted);">
+                                    <i class="fas fa-user-circle" style="font-size: 60px; opacity: 0.3;"></i>
+                                    <p style="margin-top: 10px;">Select a conversation</p>
+                                </div>
                             </div>
 
                             <div class="details-section">
@@ -1827,7 +1786,7 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/admin.js?v=22"></script>
+    <script src="js/admin.js?v=23"></script>
 </body>
 
 </html>
