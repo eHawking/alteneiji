@@ -65,18 +65,40 @@ app.use(cors({
     credentials: true
 }));
 
-// Rate limiting
+// Rate limiting - more generous for normal usage
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    message: { success: false, error: 'Too many requests, please try again later.' }
+    max: 500, // limit each IP to 500 requests per windowMs
+    message: { success: false, error: 'Too many requests, please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => {
+        // Skip rate limiting for admin routes (they have their own limiter)
+        return req.path.startsWith('/api/admin') ||
+            req.path.startsWith('/api/inbox') ||
+            req.path.startsWith('/api/channels') ||
+            req.path.startsWith('/api/agents');
+    }
 });
 app.use('/api/', limiter);
+
+// Higher limit for admin/inbox routes (polling needs more requests)
+const adminLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 2000, // Allow 2000 requests per 15 minutes for admin
+    message: { success: false, error: 'Too many requests, please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+app.use('/api/admin', adminLimiter);
+app.use('/api/inbox', adminLimiter);
+app.use('/api/channels', adminLimiter);
+app.use('/api/agents', adminLimiter);
 
 // Stricter rate limit for auth routes
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 10,
+    max: 20, // Allow 20 login attempts per 15 minutes
     message: { success: false, error: 'Too many login attempts, please try again later.' }
 });
 app.use('/api/auth/login', authLimiter);
