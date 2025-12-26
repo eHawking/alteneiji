@@ -123,12 +123,33 @@ router.get('/whatsapp/:id/qr', async (req, res) => {
         // Get QR from WhatsApp service
         const qrData = whatsappService.getQRCode(channel.id);
 
+        // If we have a QR string, convert it to a data URL
+        let qrImageUrl = null;
+        if (qrData.qr) {
+            try {
+                // Dynamic import of qrcode module
+                const QRCode = await import('qrcode');
+                qrImageUrl = await QRCode.default.toDataURL(qrData.qr, {
+                    width: 256,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#ffffff'
+                    }
+                });
+            } catch (qrError) {
+                console.warn('QRCode generation failed, returning raw string:', qrError.message);
+                // Fallback - return raw string (frontend can handle)
+                qrImageUrl = qrData.qr;
+            }
+        }
+
         res.json({
             success: true,
             data: {
                 channelId: channel.uuid,
                 status: qrData.status,
-                qrCode: qrData.qr
+                qrCode: qrImageUrl
             }
         });
     } catch (error) {
